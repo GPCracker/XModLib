@@ -2,24 +2,24 @@
 
 X-Mod is a code library for World of Tanks mods. It provides
 
-	* Simple access to arena requests (score, squad, player status)
-	* Simple callback control and callback-based classes
-	* Client version getting and comparison
-	* Collision test functions
-	* WG-XML-based config reader (ResMgr supports specific BigWorld classes, like Matrix, Vectors)
-	* 3D Geometry helpers, planes and bounding box calculations
-	* BW-GUI wrapper, provides easier access to BW GUI elements
-	* Code helpers (events, triggers)
-	* Hook control class (simple hook injection with decorators)
-	* Keyboard helper (key event parser, key sequence builder and parser)
-	* Python string format decorator (custom macros header and trailer)
-	* Messenger wrappers (chat message displaying or sending)
-	* Minimap entry manager (simple minimap entries creation or removing)
-	* PathFinder module (gets full path to file by ResMgr relative path)
-	* Sound events and queues
-	* Umlaut decoder for BW GUI texts
-	* Vehicle info class (vehicle entity-based info)
-	* Vehicle math module (model calculations and matrix transformations)
+* Simple access to arena requests (score, squad, player status)
+* Simple callback control and callback-based classes
+* Client version getting and comparison
+* Collision test functions
+* WG-XML-based config reader (ResMgr supports specific BigWorld classes, like Matrix, Vectors)
+* 3D Geometry helpers, planes and bounding box calculations
+* BW-GUI wrapper, provides easier access to BW GUI elements
+* Code helpers (events, triggers)
+* Hook control class (simple hook injection with decorators)
+* Keyboard helper (key event parser, key sequence builder and parser)
+* Python string format decorator (custom macros header and trailer)
+* Messenger wrappers (chat message displaying or sending)
+* Minimap entry manager (simple minimap entries creation or removing)
+* PathFinder module (gets full path to file by ResMgr relative path)
+* Sound events and queues
+* Umlaut decoder for BW GUI texts
+* Vehicle info class (vehicle entity-based info)
+* Vehicle math module (model calculations and matrix transformations)
 
 ## Updating, Bugs, Errors, Discussion
 
