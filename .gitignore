@@ -1,4 +1,4 @@
 # Excluding build
-./build/
+build/
 # Excluding release
-./release/
+release/
