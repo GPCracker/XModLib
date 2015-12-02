@@ -1,0 +1,4 @@
+# Excluding build
+./build/
+# Excluding release
+./release/
