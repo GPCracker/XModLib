@@ -217,4 +217,4 @@ class Queue(list):
 		return
 
 	def __repr__(self):
-		return 'Queue({}):{!r}'.format(len(self), super(Queue, self))
+		return 'Queue({}):{}'.format(len(self), super(Queue, self).__repr__())
