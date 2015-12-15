@@ -1,9 +1,25 @@
 # Authors: GPCracker
 
+# *************************
+# Python
+# *************************
 import functools
 import weakref
 
+# *************************
+# BigWorld
+# *************************
 import ResMgr
+
+# *************************
+# WoT Client
+# *************************
+# Nothing
+
+# *************************
+# X-Mod Code Library
+# *************************
+# Nothing
 
 class XMLReader(object):
 	@staticmethod

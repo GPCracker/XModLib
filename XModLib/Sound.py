@@ -1,7 +1,23 @@
 # Authors: GPCracker
 
+# *************************
+# Python
+# *************************
+# Nothing
+
+# *************************
+# BigWorld
+# *************************
 import FMOD
 
+# *************************
+# WoT Client
+# *************************
+# Nothing
+
+# *************************
+# X-Mod Code Library
+# *************************
 from .Helpers import Callback
 
 class DummySound(object):

@@ -1,6 +1,24 @@
 # Authors: GPCracker
 
+# *************************
+# Python
+# *************************
+# Nothing
+
+# *************************
+# BigWorld
+# *************************
 import Math
+
+# *************************
+# WoT Client
+# *************************
+# Nothing
+
+# *************************
+# X-Mod Code Library
+# *************************
+# Nothing
 
 class Plane(object):
 	@classmethod

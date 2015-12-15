@@ -1,7 +1,23 @@
 # Authors: GPCracker
 
+# *************************
+# Python
+# *************************
+# Nothing
+
+# *************************
+# BigWorld
+# *************************
 import ResMgr
 
+# *************************
+# WoT Client
+# *************************
+# Nothing
+
+# *************************
+# X-Mod Code Library
+# *************************
 from .ConfigReader import ConfigReader, ListXMLReader
 
 class UmlautReplace(object):

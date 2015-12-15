@@ -1,7 +1,25 @@
 # Authors: GPCracker
 
+# *************************
+# Python
+# *************************
+# Nothing
+
+# *************************
+# BigWorld
+# *************************
 import BigWorld
 import Keys
+
+# *************************
+# WoT Client
+# *************************
+# Nothing
+
+# *************************
+# X-Mod Code Library
+# *************************
+# Nothing
 
 class KeyBoard(object):
 	'''

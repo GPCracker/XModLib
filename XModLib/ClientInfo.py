@@ -1,6 +1,24 @@
 # Authors: GPCracker
 
+# *************************
+# Python
+# *************************
+# Nothing
+
+# *************************
+# BigWorld
+# *************************
+# Nothing
+
+# *************************
+# WoT Client
+# *************************
 import Account
+
+# *************************
+# X-Mod Code Library
+# *************************
+# Nothing
 
 class ClientInfo(object):
 	@staticmethod

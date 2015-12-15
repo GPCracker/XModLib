@@ -1,9 +1,31 @@
 # Authors: GPCracker
 
+# *************************
+# Python
+# *************************
+# Nothing
+
+# *************************
+# BigWorld
+# *************************
 import BigWorld
+
+# *************************
+# WoT Client
+# *************************
+import Vehicle
 import items.vehicles
 
+# *************************
+# X-Mod Code Library
+# *************************
+# Nothing
+
 class VehicleInfo(object):
+	@staticmethod
+	def isVehicle(entity):
+		return isinstance(entity, Vehicle.Vehicle)
+
 	@staticmethod
 	def isVisible(vehicleID):
 		return BigWorld.entity(vehicleID) is not None

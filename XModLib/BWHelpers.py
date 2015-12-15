@@ -1,5 +1,23 @@
 # Authors: GPCracker
 
+# *************************
+# Python
+# *************************
+# Nothing
+
+# *************************
+# BigWorld
+# *************************
+# Nothing
+
+# *************************
+# WoT Client
+# *************************
+# Nothing
+
+# *************************
+# X-Mod Code Library
+# *************************
 from .Helpers import Event, Queue, ThreeStateTrigger
 from .Callback import Callback
 

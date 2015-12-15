@@ -1,8 +1,24 @@
 # Authors: GPCracker
 
+# *************************
+# Python
+# *************************
 import os
 
+# *************************
+# BigWorld
+# *************************
 import ResMgr
+
+# *************************
+# WoT Client
+# *************************
+# Nothing
+
+# *************************
+# X-Mod Code Library
+# *************************
+# Nothing
 
 class PathFinder(object):
 	def __init__(self):

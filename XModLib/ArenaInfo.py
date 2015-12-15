@@ -1,6 +1,24 @@
 # Authors: GPCracker
 
+# *************************
+# Python
+# *************************
+# Nothing
+
+# *************************
+# BigWorld
+# *************************
+# Nothing
+
+# *************************
+# WoT Client
+# *************************
 import gui.battle_control
+
+# *************************
+# X-Mod Code Library
+# *************************
+# Nothing
 
 class ArenaInfo(object):
 	@staticmethod
@@ -42,6 +60,10 @@ class ArenaInfo(object):
 	@staticmethod
 	def getClass(vehicleID):
 		return gui.battle_control.g_sessionProvider.getArenaDP().getVehicleInfo(vehicleID).vehicleType.classTag
+
+	@staticmethod
+	def getShortName(vehicleID):
+		return gui.battle_control.g_sessionProvider.getArenaDP().getVehicleInfo(vehicleID).vehicleType.shortName
 
 	@staticmethod
 	def getFrags(vehicleID):

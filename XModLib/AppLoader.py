@@ -1,6 +1,24 @@
 # Authors: GPCracker
 
+# *************************
+# Python
+# *************************
+# Nothing
+
+# *************************
+# BigWorld
+# *************************
+# Nothing
+
+# *************************
+# WoT Client
+# *************************
 import gui.app_loader
+
+# *************************
+# X-Mod Code Library
+# *************************
+# Nothing
 
 class AppLoader(object):
 	@staticmethod

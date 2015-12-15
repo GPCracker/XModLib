@@ -1,8 +1,24 @@
 # Authors: GPCracker
 
+# *************************
+# Python
+# *************************
 import functools
 import types
 
+# *************************
+# BigWorld
+# *************************
+# Nothing
+
+# *************************
+# WoT Client
+# *************************
+# Nothing
+
+# *************************
+# X-Mod Code Library
+# *************************
 from .Helpers import ReleaseEvent as HookEvent
 
 class HookFunction(object):
