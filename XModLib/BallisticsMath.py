@@ -9,6 +9,7 @@ import math
 # BigWorld
 # *************************
 import BigWorld
+import Math
 
 # *************************
 # WoT Client
@@ -66,12 +67,12 @@ class BallisticsMath(object):
 		return aimingDistance * dispersionAngle
 
 	@staticmethod
-	def getFlyTime(vehicleTypeDescriptor, vehicleMP, targetPoint):
+	def getDistanceAndFlyTime(vehicleTypeDescriptor, vehicleMP, targetPoint):
 		turretYaw, gunPitch = VehicleMath.getShotAngles(vehicleTypeDescriptor, vehicleMP, targetPoint)
 		shotPoint, shotVector, shotGravity, shotMaxDistance = VehicleMath.getVehicleShotParams(vehicleTypeDescriptor, Math.Matrix(vehicleMP), turretYaw, gunPitch)
-		return targetPoint.flatDistTo(shotPoint) / shotVector.flatDistTo(Math.Vector3(0.0, 0.0, 0.0))
+		return targetPoint.distTo(shotPoint), targetPoint.flatDistTo(shotPoint) / shotVector.flatDistTo(Math.Vector3(0.0, 0.0, 0.0))
 
 	@classmethod
-	def getPlayerFlyTime(sclass):
+	def getPlayerDistanceAndFlyTime(sclass):
 		player = BigWorld.player()
-		return sclass.getFlyTime(player.vehicleTypeDescriptor, player.getOwnVehicleMatrix(), player.gunRotator.markerInfo[0])
+		return sclass.getDistanceAndFlyTime(player.vehicleTypeDescriptor, player.getOwnVehicleMatrix(), player.gunRotator.markerInfo[0])
