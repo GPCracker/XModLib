@@ -23,8 +23,8 @@ import BigWorld
 
 class Callback(object):
 	@staticmethod
-	def getMethodProxy(method):
-		return functools.partial(weakref.proxy(method.im_func), weakref.proxy(method.im_self))
+	def getMethodProxy(method, *args, **kwargs):
+		return functools.partial(weakref.proxy(method.im_func), weakref.proxy(method.im_self), *args, **kwargs)
 
 	@staticmethod
 	def getPartial(function, *args, **kwargs):
