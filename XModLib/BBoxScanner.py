@@ -24,17 +24,18 @@ from .Geometry import BoundingBox
 
 class BBoxScanner(object):
 	@classmethod
-	def scanTarget(sclass, scanStart, scanDir, entities, scalar=1.0):
+	def scanTarget(sclass, scanStart, scanStop, entities, scalar=1.0):
 		unitBB = BoundingBox.getUnitBoundingBox()
 		unitBB.scale(scalar)
-		def scanTransform(entity, scanStart, scanDir):
+		def scanTransform(entity, scanStart, scanStop):
 			matrix = Math.Matrix(Math.MatrixInverse(entity.model.bounds))
-			return matrix.applyPoint(scanStart), matrix.applyVector(scanDir)
-		targets = filter(lambda entity: unitBB.intersectRayPrimaryCheck(*scanTransform(entity, scanStart, scanDir)), entities)
+			return matrix.applyPoint(scanStart), matrix.applyPoint(scanStop)
+		targets = filter(lambda entity: unitBB.intersectSegmentPrimaryCheck(*scanTransform(entity, scanStart, scanStop)), entities)
 		return targets[0] if len(targets) == 1 else None
 
 	@classmethod
-	def getTarget(sclass, filterID=None, filterVehicle=None, scalar=1.0):
+	def getTarget(sclass, filterID=None, filterVehicle=None, maxDistance=720, scalar=1.0):
 		scanDir, scanStart = AvatarInputHandler.cameras.getWorldRayAndPoint(*BigWorld.player().inputHandler.ctrl.getAim().offset())
 		scanDir.normalise()
-		return sclass.scanTarget(scanStart, scanDir, Colliders.getVisibleVehicles(filterID, filterVehicle), scalar)
+		scanStop = scanStart + scanDir * maxDistance
+		return sclass.scanTarget(scanStart, scanStop, Colliders.getVisibleVehicles(filterID, filterVehicle), scalar)
