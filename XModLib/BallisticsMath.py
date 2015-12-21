@@ -67,12 +67,13 @@ class BallisticsMath(object):
 		return aimingDistance * dispersionAngle
 
 	@staticmethod
-	def getDistanceAndFlyTime(vehicleTypeDescriptor, vehicleMP, targetPoint):
+	def getBallisticsInfo(vehicleTypeDescriptor, vehicleMP, targetPoint):
 		turretYaw, gunPitch = VehicleMath.getShotAngles(vehicleTypeDescriptor, vehicleMP, targetPoint)
 		shotPoint, shotVector, shotGravity, shotMaxDistance = VehicleMath.getVehicleShotParams(vehicleTypeDescriptor, Math.Matrix(vehicleMP), turretYaw, gunPitch)
-		return targetPoint.distTo(shotPoint), targetPoint.flatDistTo(shotPoint) / shotVector.flatDistTo(Math.Vector3(0.0, 0.0, 0.0))
+		flyTime = targetPoint.flatDistTo(shotPoint) / shotVector.flatDistTo(Math.Vector3(0.0, 0.0, 0.0))
+		return targetPoint.distTo(shotPoint), (shotVector + shotGravity * flyTime).pitch, flyTime
 
 	@classmethod
-	def getPlayerDistanceAndFlyTime(sclass):
+	def getPlayerBallisticsInfo(sclass):
 		player = BigWorld.player()
-		return sclass.getDistanceAndFlyTime(player.vehicleTypeDescriptor, player.getOwnVehicleMatrix(), player.gunRotator.markerInfo[0])
+		return sclass.getBallisticsInfo(player.vehicleTypeDescriptor, player.getOwnVehicleMatrix(), player.gunRotator.markerInfo[0])
