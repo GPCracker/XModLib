@@ -34,10 +34,11 @@ if __name__ == '__main__':
 		with open(cfg_file, 'rt') as f:
 			config = json.load(f)
 		application = config["application"]
+		clientVersion = config["clientVersion"]
+		buildPath = config["buildPath"].replace('<client>', clientVersion)
+		releasePath = config["releasePath"].replace('<client>', clientVersion)
+		zipPath = config["zipPath"].replace('<client>', clientVersion)
 		sources = config["sources"]
-		buildPath = config["buildPath"]
-		releasePath = config["releasePath"]
-		zipPath = config["zipPath"]
 		if os.path.isdir(buildPath):
 			shutil.rmtree(buildPath)
 		if os.path.isdir(releasePath):
