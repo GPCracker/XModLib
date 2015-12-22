@@ -12,7 +12,7 @@ import traceback
 def compileSource(source, filename = '<string>', filetime = time.time()):
 	with io.BytesIO() as bytesIO:
 		bytesIO.write(imp.get_magic())
-		bytesIO.write(struct.pack('I', int(filetime)))
+		bytesIO.write(struct.pack('<I', int(filetime)))
 		bytesIO.write(marshal.dumps(compile(source, filename, 'exec')))
 		result = bytesIO.getvalue()
 	return result
