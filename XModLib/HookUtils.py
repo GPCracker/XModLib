@@ -26,7 +26,7 @@ class HookFunction(object):
 	CALL_HOOK_BEFORE_ORIGIN = 0x1
 	CALL_ORIGIN_INSIDE_HOOK = 0x2
 
-	def __init__(self, origin, hook, type = CALL_ORIGIN_BEFORE_HOOK, active = True):
+	def __init__(self, origin, hook, type=CALL_ORIGIN_BEFORE_HOOK, active=True):
 		if not isinstance(hook, (types.FunctionType, types.LambdaType)):
 			raise TypeError('Hook must be function or lambda')
 		self.__name__ = hook.__name__
@@ -49,11 +49,11 @@ class HookFunction(object):
 			result = self.origin(*args, **kwargs)
 		return result
 
-	def __get__(self, instance, type = None):
+	def __get__(self, instance, type=None):
 		return types.MethodType(self, instance, type)
 
 	@classmethod
-	def makeMethodHook(sclass, target, method, hook, type = CALL_ORIGIN_BEFORE_HOOK, active = True):
+	def makeMethodHook(sclass, target, method, hook, type=CALL_ORIGIN_BEFORE_HOOK, active=True):
 		origin = getattr(target, method).__func__
 		override = sclass(origin, hook, type, active)
 		if isinstance(target, (types.TypeType, types.ClassType)):
@@ -63,7 +63,7 @@ class HookFunction(object):
 		return hook
 
 	@classmethod
-	def makeStaticMethodHook(sclass, target, method, hook, type = CALL_ORIGIN_BEFORE_HOOK, active = True):
+	def makeStaticMethodHook(sclass, target, method, hook, type=CALL_ORIGIN_BEFORE_HOOK, active=True):
 		origin = getattr(target, method)
 		override = sclass(origin, hook, type, active)
 		if isinstance(target, (types.TypeType, types.ClassType)):
@@ -73,7 +73,7 @@ class HookFunction(object):
 		return hook
 
 	@classmethod
-	def makeClassMethodHook(sclass, target, method, hook, type = CALL_ORIGIN_BEFORE_HOOK, active = True):
+	def makeClassMethodHook(sclass, target, method, hook, type=CALL_ORIGIN_BEFORE_HOOK, active=True):
 		origin = getattr(target, method).__func__
 		override = sclass(origin, hook, type, active)
 		if isinstance(target, (types.TypeType, types.ClassType)):
@@ -83,40 +83,40 @@ class HookFunction(object):
 		return hook
 
 	@classmethod
-	def makeMethodHookOnEvent(sclass, event, target, method, hook, type = CALL_ORIGIN_BEFORE_HOOK, active = True):
-		event += functools.partial(sclass.makeMethodHook, target, method, hook, type = type, active = active)
+	def makeMethodHookOnEvent(sclass, event, target, method, hook, type=CALL_ORIGIN_BEFORE_HOOK, active=True):
+		event += functools.partial(sclass.makeMethodHook, target, method, hook, type=type, active=active)
 		return hook
 
 	@classmethod
-	def makeStaticMethodHookOnEvent(sclass, event, target, method, hook, type = CALL_ORIGIN_BEFORE_HOOK, active = True):
-		event += functools.partial(sclass.makeStaticMethodHook, target, method, hook, type = type, active = active)
+	def makeStaticMethodHookOnEvent(sclass, event, target, method, hook, type=CALL_ORIGIN_BEFORE_HOOK, active=True):
+		event += functools.partial(sclass.makeStaticMethodHook, target, method, hook, type=type, active=active)
 		return hook
 
 	@classmethod
-	def makeClassMethodHookOnEvent(sclass, event, target, method, hook, type = CALL_ORIGIN_BEFORE_HOOK, active = True):
-		event += functools.partial(sclass.makeClassMethodHook, target, method, hook, type = type, active = active)
+	def makeClassMethodHookOnEvent(sclass, event, target, method, hook, type=CALL_ORIGIN_BEFORE_HOOK, active=True):
+		event += functools.partial(sclass.makeClassMethodHook, target, method, hook, type=type, active=active)
 		return hook
 
 	@classmethod
-	def methodHook(sclass, target, method, type = CALL_ORIGIN_BEFORE_HOOK, active = True):
-		return functools.partial(sclass.makeMethodHook, target, method, type = type, active = active)
+	def methodHook(sclass, target, method, type=CALL_ORIGIN_BEFORE_HOOK, active=True):
+		return functools.partial(sclass.makeMethodHook, target, method, type=type, active=active)
 
 	@classmethod
-	def staticMethodHook(sclass, target, method, type = CALL_ORIGIN_BEFORE_HOOK, active = True):
-		return functools.partial(sclass.makeStaticMethodHook, target, method, type = type, active = active)
+	def staticMethodHook(sclass, target, method, type=CALL_ORIGIN_BEFORE_HOOK, active=True):
+		return functools.partial(sclass.makeStaticMethodHook, target, method, type=type, active=active)
 
 	@classmethod
-	def classMethodHook(sclass, target, method, type = CALL_ORIGIN_BEFORE_HOOK, active = True):
-		return functools.partial(sclass.makeClassMethodHook, target, method, type = type, active = active)
+	def classMethodHook(sclass, target, method, type=CALL_ORIGIN_BEFORE_HOOK, active=True):
+		return functools.partial(sclass.makeClassMethodHook, target, method, type=type, active=active)
 
 	@classmethod
-	def methodHookOnEvent(sclass, event, target, method, type = CALL_ORIGIN_BEFORE_HOOK, active = True):
-		return functools.partial(sclass.makeMethodHookOnEvent, event, target, method, type = type, active = active)
+	def methodHookOnEvent(sclass, event, target, method, type=CALL_ORIGIN_BEFORE_HOOK, active=True):
+		return functools.partial(sclass.makeMethodHookOnEvent, event, target, method, type=type, active=active)
 
 	@classmethod
-	def staticMethodHookOnEvent(sclass, event, target, method, type = CALL_ORIGIN_BEFORE_HOOK, active = True):
-		return functools.partial(sclass.makeStaticMethodHookOnEvent, event, target, method, type = type, active = active)
+	def staticMethodHookOnEvent(sclass, event, target, method, type=CALL_ORIGIN_BEFORE_HOOK, active=True):
+		return functools.partial(sclass.makeStaticMethodHookOnEvent, event, target, method, type=type, active=active)
 
 	@classmethod
-	def classMethodHookOnEvent(sclass, event, target, method, type = CALL_ORIGIN_BEFORE_HOOK, active = True):
-		return functools.partial(sclass.makeClassMethodHookOnEvent, event, target, method, type = type, active = active)
+	def classMethodHookOnEvent(sclass, event, target, method, type=CALL_ORIGIN_BEFORE_HOOK, active=True):
+		return functools.partial(sclass.makeClassMethodHookOnEvent, event, target, method, type=type, active=active)
