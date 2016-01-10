@@ -31,10 +31,10 @@ class Colliders(object):
 		return BigWorld.wg_collideSegment(BigWorld.player().spaceID, startPoint, endPoint, collisionFlags, resultFilter)
 
 	@staticmethod
-	def getVisibleVehicles(filterID=None, filterVehicle=None):
+	def getVisibleVehicles(filterID=None, filterVehicle=None, skipPlayer=False):
 		vehicles = list()
 		for vehicleID in filter(filterID, BigWorld.player().arena.vehicles):
-			if vehicleID == BigWorld.player().playerVehicleID:
+			if skipPlayer and vehicleID == BigWorld.player().playerVehicleID:
 				continue
 			vehicle = BigWorld.entity(vehicleID)
 			if vehicle is not None and vehicle.isStarted:
