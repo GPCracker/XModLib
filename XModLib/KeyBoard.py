@@ -3,7 +3,7 @@
 # *************************
 # Python
 # *************************
-# Nothing
+import functools
 
 # *************************
 # BigWorld
@@ -21,24 +21,24 @@ import Keys
 # *************************
 # Nothing
 
-class KeyBoard(object):
+class Shortcut(object):
 	'''
 	Parsing keyboard events and hot-key sequences.
 	Key modifiers flags: Shift = 1; Ctrl = 2; Alt = 4;
 	'''
-	MOD_KEYS = set([
+	MOD_KEYS = frozenset({
 		Keys.KEY_LSHIFT,
 		Keys.KEY_RSHIFT,
 		Keys.KEY_LCONTROL,
 		Keys.KEY_RCONTROL,
 		Keys.KEY_LALT,
 		Keys.KEY_RALT
-	])
-	MOD_FLAGS = set([
+	})
+	MOD_FLAGS = frozenset({
 		Keys.MODIFIER_SHIFT,
 		Keys.MODIFIER_CTRL,
 		Keys.MODIFIER_ALT
-	])
+	})
 	MOD_KEY2FLAG = {
 		Keys.KEY_LSHIFT: Keys.MODIFIER_SHIFT,
 		Keys.KEY_RSHIFT: Keys.MODIFIER_SHIFT,
@@ -71,13 +71,13 @@ class KeyBoard(object):
 	@classmethod
 	def parseEvent(sclass, event):
 		'''
-		parseEvent(event) -> key, isDown, isRepeat, modifiers
+		parseEvent(event) -> key, modifiers, isDown, isRepeat
 		'''
 		return (
 			event.key,
+			event.modifiers & ~(sclass.MOD_KEY2FLAG[event.key] if event.key in sclass.MOD_KEYS and not BigWorld.isKeyDown(sclass.MOD_PAIRS[event.key]) else 0x0),
 			event.isKeyDown(),
-			event.isRepeatedEvent(),
-			event.modifiers & ~(sclass.MOD_KEY2FLAG[event.key] if event.key in sclass.MOD_KEYS and not BigWorld.isKeyDown(sclass.MOD_PAIRS[event.key]) else 0x0)
+			event.isRepeatedEvent()
 		)
 
 	@classmethod
@@ -98,4 +98,30 @@ class KeyBoard(object):
 
 	@classmethod
 	def buildSequence(sclass, key, modifiers):
+		'''
+		buildSequence(key, modifiers) -> sequence
+		'''
 		return '+'.join(map(sclass.keyToString, [sclass.MOD_FLAG2KEY[flag][0] for flag in sclass.MOD_FLAGS if modifiers & flag] + [key]))
+
+	@classmethod
+	def fromSequence(sclass, sequence, switch=True, invert=False, repeat=False):
+		key, modifiers = sclass.parseSequence(sequence)
+		return sclass(key, modifiers, switch=switch, invert=invert, repeat=repeat)
+
+	def __init__(self, key, modifiers, switch=True, invert=False, repeat=False):
+		self.key = key
+		self.modifiers = modifiers
+		self.switch = switch
+		self.invert = invert
+		self.repeat = repeat
+		return
+
+	def __call__(self, event):
+		key, modifiers, isDown, isRepeat = self.parseEvent(event)
+		if key == self.key and modifiers == self.modifiers and (not isRepeat or self.repeat):
+			return functools.partial(
+				lambda switch, pushed, value: bool(value) != bool(pushed) if switch else bool(pushed),
+				self.switch,
+				bool(isDown) != bool(self.invert)
+			)
+		return None
