@@ -21,8 +21,10 @@ X-Mod is a code library for World of Tanks mods. It provides
 * Vehicle info class (vehicle entity-based info)
 * Vehicle math module (model calculations and matrix transformations)
 
+## X-Mod Code Library Usage
+
+X-Mod is an important part (a core module) of several mods and is being developed as a common script storage for them. This approach prevents code doubling between mods, providing single change history. Author does not aim to implement features required in neither of his mods here.
+
 ## Updating, Bugs, Errors, Discussion
 
-Author tries to update library as soon as possible after new WoT patch released, but if you need it "just now" or
-you want to use it on specific game client version, you can fix it by yourself. Feature request and bug report
-could be made in [official topic]().
+Author tries to update library as soon as possible after new WoT patch released, but if you need it "just now" or you want to use it on specific game client version, you can fix it yourself. Feature requests and bug reports should be made in official topics of appropriate mods.
