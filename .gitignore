@@ -6,3 +6,5 @@ release/
 topic/
 # Excluding temp
 temp/
+# Excluding version
+version.cfg

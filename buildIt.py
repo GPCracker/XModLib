@@ -45,7 +45,7 @@ def resourceIterator(res_list, resourcePath='./'):
 					yield joinPath(resource, root, file), joinPath(target, root, file)
 	return
 
-def processSource(source, fzip, sourcePath='./', buildPath='./build/', zipPath='./'):
+def processSource(source, fzip, version, versionMacros='<version>', sourcePath='./', buildPath='./build/', zipPath='./'):
 	src_file = joinPath(sourcePath, source)
 	dst_name = os.path.splitext(source)[0] + '.pyc'
 	dst_file = joinPath(buildPath, dst_name)
@@ -54,7 +54,7 @@ def processSource(source, fzip, sourcePath='./', buildPath='./build/', zipPath='
 	if not os.path.isdir(os.path.dirname(dst_file)):
 		os.makedirs(os.path.dirname(dst_file))
 	with open(src_file, 'rt') as f:
-		source = f.read()
+		source = f.read().replace(versionMacros, version)
 	with open(dst_file, 'wb') as f:
 		f.write(compileSource(source, src_file, os.path.getmtime(src_file)))
 	fzip.write(dst_file, zip_file)
@@ -71,7 +71,18 @@ if __name__ == '__main__':
 		cfg_file = joinPath(os.path.splitext(__file__)[0] + '.cfg')
 		with open(cfg_file, 'rb') as f:
 			config = json.loads(f.read())
+		vcs_file = joinPath(os.path.dirname(__file__), 'version.cfg')
+		version = '<custom_build>'
+		if os.path.isfile(vcs_file):
+			with open(vcs_file, 'r+b') as f:
+				vcs_info = json.load(f)
+				version = '{release}#{next_build}'.format(**vcs_info)
+				vcs_info['next_build'] += 1
+				f.seek(0)
+				f.truncate()
+				f.write(json.dumps(vcs_info) + '\n')
 		application = config["application"]
+		versionMacros = config["versionMacros"]
 		clientVersion = config["clientVersion"]
 		sourcePath = config["sourcePath"].replace('<client>', clientVersion)
 		buildPath = config["buildPath"].replace('<client>', clientVersion)
@@ -88,7 +99,7 @@ if __name__ == '__main__':
 		os.makedirs(releasePath)
 		with zipfile.ZipFile(joinPath(releasePath, application + '.zip'), 'w', zipfile.ZIP_DEFLATED) as fzip:
 			for source in sourceIterator(sources, sourcePath):
-				processSource(source, fzip, sourcePath, buildPath, zipPath)
+				processSource(source, fzip, version, versionMacros, sourcePath, buildPath, zipPath)
 			for resource, target in resourceIterator(resources, resourcePath):
 				processResource(resource, target, fzip, resourcePath)
 	except:
