@@ -34,8 +34,8 @@ class BBoxScanner(object):
 		return targets[0] if len(targets) == 1 else None
 
 	@classmethod
-	def getTarget(sclass, filterID=None, filterVehicle=None, maxDistance=720, scalar=1.0):
+	def getTarget(sclass, filterID=None, filterVehicle=None, maxDistance=720, scalar=1.0, skipPlayer=True):
 		scanDir, scanStart = AvatarInputHandler.cameras.getWorldRayAndPoint(*BigWorld.player().inputHandler.ctrl.getAim().offset())
 		scanDir.normalise()
 		scanStop = scanStart + scanDir * maxDistance
-		return sclass.scanTarget(scanStart, scanStop, Colliders.getVisibleVehicles(filterID, filterVehicle), scalar)
+		return sclass.scanTarget(scanStart, scanStop, Colliders.getVisibleVehicles(filterID, filterVehicle, skipPlayer), scalar)
