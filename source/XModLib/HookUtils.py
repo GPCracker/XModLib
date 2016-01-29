@@ -56,6 +56,30 @@ class HookFunction(object):
 		return types.MethodType(self, instance, type)
 
 	@classmethod
+	def makeMethodAdd(sclass, target, method, hook):
+		if isinstance(target, (types.TypeType, types.ClassType)):
+			setattr(target, method, hook)
+		else:
+			setattr(target, method, hook.__get__(target, types.TypeType(target)))
+		return hook
+
+	@classmethod
+	def makeStaticMethodAdd(sclass, target, method, hook):
+		if isinstance(target, (types.TypeType, types.ClassType)):
+			setattr(target, method, staticmethod(hook))
+		else:
+			setattr(target, method, hook)
+		return hook
+
+	@staticmethod
+	def makeClassMethodAdd(sclass, target, method, hook):
+		if isinstance(target, (types.TypeType, types.ClassType)):
+			setattr(target, method, classmethod(hook))
+		else:
+			setattr(target, method, hook.__get__(types.TypeType(target), types.TypeType))
+		return hook
+
+	@classmethod
 	def makeMethodHook(sclass, target, method, hook, calltype=CALL_ORIGIN_BEFORE_HOOK, active=True):
 		origin = getattr(target, method).__func__
 		override = sclass(origin, hook, calltype, active)
@@ -113,6 +137,21 @@ class HookFunction(object):
 		return hook
 
 	@classmethod
+	def makeMethodAddOnEvent(sclass, event, target, method, hook):
+		event += functools.partial(sclass.makeMethodAdd, target, method, hook)
+		return hook
+
+	@classmethod
+	def makeStaticMethodAddOnEvent(sclass, event, target, method, hook):
+		event += functools.partial(sclass.makeStaticMethodAdd, target, method, hook)
+		return hook
+
+	@staticmethod
+	def makeClassMethodAddOnEvent(sclass, event, target, method, hook):
+		event += functools.partial(sclass.makeClassMethodAdd, target, method, hook)
+		return hook
+
+	@classmethod
 	def makeMethodHookOnEvent(sclass, event, target, method, hook, calltype=CALL_ORIGIN_BEFORE_HOOK, active=True):
 		event += functools.partial(sclass.makeMethodHook, target, method, hook, calltype=calltype, active=active)
 		return hook
@@ -133,6 +172,18 @@ class HookFunction(object):
 		return hook
 
 	@classmethod
+	def methodAdd(sclass, target, method):
+		return functools.partial(sclass.makeMethodAdd, target, method)
+
+	@classmethod
+	def staticMethodAdd(sclass, target, method):
+		return functools.partial(sclass.makeStaticMethodAdd, target, method)
+
+	@classmethod
+	def classMethodAdd(sclass, target, method):
+		return functools.partial(sclass.makeClassMethodAdd, target, method)
+
+	@classmethod
 	def methodHook(sclass, target, method, calltype=CALL_ORIGIN_BEFORE_HOOK, active=True):
 		return functools.partial(sclass.makeMethodHook, target, method, calltype=calltype, active=active)
 
@@ -147,6 +198,18 @@ class HookFunction(object):
 	@classmethod
 	def propertyHook(sclass, target, method, varname, action=PROPERTY_ACTION_SET, calltype=CALL_ORIGIN_BEFORE_HOOK, active=True):
 		return functools.partial(sclass.makePropertyHook, target, method, varname, action=action, calltype=calltype, active=active)
+
+	@classmethod
+	def methodAddOnEvent(sclass, event, target, method):
+		return functools.partial(sclass.makeMethodAddOnEvent, event, target, method)
+
+	@classmethod
+	def staticMethodAddOnEvent(sclass, event, target, method):
+		return functools.partial(sclass.makeStaticMethodAddOnEvent, event, target, method)
+
+	@classmethod
+	def classMethodAddOnEvent(sclass, event, target, method):
+		return functools.partial(sclass.makeClassMethodAddOnEvent, event, target, method)
 
 	@classmethod
 	def methodHookOnEvent(sclass, event, target, method, calltype=CALL_ORIGIN_BEFORE_HOOK, active=True):
