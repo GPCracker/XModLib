@@ -21,6 +21,15 @@ import Keys
 # *************************
 # Nothing
 
+class ShortcutHandle(object):
+	def __init__(self, switch, pushed):
+		self.switch = switch
+		self.pushed = pushed
+		return
+
+	def __call__(self, value):
+		return bool(value) != bool(self.pushed) if self.switch else bool(self.pushed)
+
 class Shortcut(object):
 	'''
 	Parsing keyboard events and hot-key sequences.
@@ -119,9 +128,5 @@ class Shortcut(object):
 	def __call__(self, event):
 		key, modifiers, isDown, isRepeat = self.parseEvent(event)
 		if key == self.key and modifiers == self.modifiers and (not isRepeat or self.repeat):
-			return functools.partial(
-				lambda switch, pushed, value: bool(value) != bool(pushed) if switch else bool(pushed),
-				self.switch,
-				bool(isDown) != bool(self.invert)
-			)
+			return ShortcutHandle(self.switch, bool(isDown) != bool(self.invert))
 		return None
