@@ -22,13 +22,25 @@ import Math
 
 class MathUtils(object):
 	@staticmethod
-	def rotationMatrix(yaw, pitch, roll):
+	def getRotationMatrix(yaw, pitch, roll):
 		result = Math.Matrix()
 		result.setRotateYPR((yaw, pitch, roll))
 		return result
 
 	@staticmethod
-	def normalisedVector(vector):
+	def getIdentityMatrix():
+		result = Math.Matrix()
+		result.setIdentity()
+		return result
+
+	@staticmethod
+	def getInvertedMatrix(matrix):
+		result = Math.Matrix(matrix)
+		result.invert()
+		return result
+
+	@staticmethod
+	def getNormalisedVector(vector):
 		return vector.scale(1.0 / vector.length)
 
 	@staticmethod
