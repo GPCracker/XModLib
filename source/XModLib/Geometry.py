@@ -19,7 +19,7 @@ import Math
 # *************************
 # X-Mod Code Library
 # *************************
-from .ExtraMath import ExtraMath
+from .MathUtils import MathUtils
 
 class Plane(object):
 	@classmethod
@@ -129,7 +129,7 @@ class Parallelogram(object):
 		self.points = point0, point1, point2, point3
 		self.center = point0 + vector2.scale(0.5)
 		self.plane = Plane.initBy3Points(point0, point1, point2)
-		self.basis = ExtraMath.getBasisMatrix((vector0, self.plane.normal, vector1))
+		self.basis = MathUtils.getBasisMatrix((vector0, self.plane.normal, vector1))
 		return
 
 	def scale(self, scalar):
@@ -140,7 +140,7 @@ class Parallelogram(object):
 		return
 
 	def isPointOnParallelogram(self, point):
-		vector = ExtraMath.expandVectorInBasis(point - self.point0, self.basis)
+		vector = MathUtils.expandVectorInBasis(point - self.point0, self.basis)
 		return -0.001 <= vector[0] <= +1.001 and -0.001 <= vector[1] <= +0.001 and -0.001 <= vector[2] <= +1.001
 
 	def intersectRay(self, point, vector):
@@ -223,7 +223,7 @@ class BoundingBox(object):
 		self.points = point0, point1, point2, point3, point4, point5, point6, point7
 		self.center = center
 		self.radius = max(point0 - center, point1 - center, point2 - center, point3 - center, key=lambda vector: vector.lengthSquared).length
-		self.basis = ExtraMath.getBasisMatrix((vector0, vector1, vector2))
+		self.basis = MathUtils.getBasisMatrix((vector0, vector1, vector2))
 		self.faces = (
 			Parallelogram(point0, point1, point2),
 			Parallelogram(point0, point1, point3),
@@ -251,7 +251,7 @@ class BoundingBox(object):
 		return
 
 	def isPointInsideBox(self, point):
-		vector = ExtraMath.expandVectorInBasis(point - self.point0, self.basis)
+		vector = MathUtils.expandVectorInBasis(point - self.point0, self.basis)
 		return -0.001 <= vector[0] <= +1.001 and -0.001 <= vector[1] <= +1.001 and -0.001 <= vector[2] <= +1.001
 
 	def intersectRay(self, point, vector, single=True):

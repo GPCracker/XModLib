@@ -19,7 +19,7 @@ import constants
 # *************************
 # X-Mod Code Library
 # *************************
-from .ExtraMath import ExtraMath
+from .MathUtils import MathUtils
 from .VehicleMath import VehicleMath
 
 class Colliders(object):
@@ -54,7 +54,7 @@ class Colliders(object):
 				collisionResults.append((distance, vehicle, cos, armor))
 		if collisionResults:
 			distance, vehicle, cos, armor = min(collisionResults, key = lambda collisionResult: collisionResult[0])
-			return startPoint + ExtraMath.normalisedVector(endPoint - startPoint).scale(distance), vehicle, cos, armor
+			return startPoint + MathUtils.normalisedVector(endPoint - startPoint).scale(distance), vehicle, cos, armor
 		return None
 
 	@staticmethod
@@ -91,7 +91,7 @@ class Colliders(object):
 				if collisionResults:
 					collisionResult = min(collisionResults, key = lambda collisionResult: collisionResult[0].distTo(collisionTestStart))
 					hitPoint = collisionResult[0]
-					hitVector = ExtraMath.normalisedVector(collisionTestStop - collisionTestStart)
+					hitVector = MathUtils.normalisedVector(collisionTestStop - collisionTestStart)
 					hitResult = collisionResult
 					break
 				collisionTestStart = collisionTestStop

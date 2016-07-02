@@ -20,7 +20,7 @@ import Math
 # *************************
 # Nothing
 
-class ExtraMath(object):
+class MathUtils(object):
 	@staticmethod
 	def rotationMatrix(yaw, pitch, roll):
 		result = Math.Matrix()
