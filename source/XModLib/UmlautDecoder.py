@@ -18,30 +18,26 @@ import ResMgr
 # *************************
 # X-Mod Code Library
 # *************************
-from .ConfigReader import ConfigReader, ListXMLReader
+from .XMLConfigReader import XMLConfigReader, ListXMLReader
 
-class UmlautReplace(object):
-	@classmethod
-	def fromDict(sclass, umlautReplace):
-		return sclass(**umlautReplace)
-
-	def __init__(self, uml, rpl):
-		self.uml = uml
-		self.rpl = rpl
-		return
+class UmlautReplace(tuple):
+	def __new__(sclass, iterable):
+		result = super(UmlautReplace, sclass).__new__(sclass, iterable)
+		if len(result) != 2:
+			raise ValueError('Argument must be a length of 2.')
+		return result
 
 	def __call__(self, string):
-		return string.replace(self.uml, self.rpl)
+		return string.replace(*self)
 
-	def __del__(self):
-		return
+	def __repr__(self):
+		return 'UmlautReplace({})'.format(super(UmlautReplace, self).__repr__())
 
-class UmlautDecoder(object):
+class UmlautDecoder(list):
 	@classmethod
-	def fromXML(sclass, xml):
-		xml = xml if isinstance(xml, ResMgr.DataSection) else ResMgr.openSection(xml)
-		configReader = ConfigReader({
-			'UmlautReplaceList': ListXMLReader.customize(
+	def from_xml(sclass, xml):
+		xml_config_reader = XMLConfigReader.new({
+			'UmlautReplaceList': ListXMLReader.new_class(
 				'UmlautReplaceListReader',
 				ITEM_NAME = 'umlaut',
 				ITEM_TYPE = 'Dict',
@@ -51,16 +47,13 @@ class UmlautDecoder(object):
 				}
 			)
 		})
-		return sclass(map(UmlautReplace.fromDict, configReader.readSection(xml, ('UmlautReplaceList', []))))
-
-	def __init__(self, umlautReplaces = []):
-		self.umlautReplaces = umlautReplaces
-		return
+		xml_section = xml if isinstance(xml, ResMgr.DataSection) else xml_config_reader.open_section(xml)
+		return sclass(map(lambda umlaut_replace: UmlautReplace((umlaut_replace['uml'], umlaut_replace['rpl'])), xml_config_reader(xml_section, ('UmlautReplaceList', []))))
 
 	def __call__(self, string):
-		for umlautReplace in self.umlautReplaces:
-			string = umlautReplace(string)
+		for umlaut_replace in self:
+			string = umlaut_replace(string)
 		return string
 
-	def __del__(self):
-		return
+	def __repr__(self):
+		return 'UmlautDecoder({})'.format(super(UmlautDecoder, self).__repr__())
