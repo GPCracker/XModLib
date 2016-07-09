@@ -22,9 +22,21 @@ import Math
 
 class MathUtils(object):
 	@staticmethod
-	def getRotationMatrix(yaw, pitch, roll):
+	def getRotationMatrix(ypr):
 		result = Math.Matrix()
-		result.setRotateYPR((yaw, pitch, roll))
+		result.setRotateYPR(ypr)
+		return result
+
+	@staticmethod
+	def getScaleMatrix(scales):
+		result = Math.Matrix()
+		result.setScale(scales)
+		return result
+
+	@staticmethod
+	def getTranslationMatrix(translation):
+		result = Math.Matrix()
+		result.setTranslate(translation)
 		return result
 
 	@staticmethod
@@ -37,6 +49,13 @@ class MathUtils(object):
 	def getInvertedMatrix(matrix):
 		result = Math.Matrix(matrix)
 		result.invert()
+		return result
+
+	@staticmethod
+	def getMatrixProduct(matrixProviderA, matrixProviderB):
+		result = Math.MatrixProduct()
+		result.a = matrixProviderA
+		result.b = matrixProviderB
 		return result
 
 	@staticmethod
