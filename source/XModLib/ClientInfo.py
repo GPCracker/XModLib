@@ -13,7 +13,7 @@
 # *************************
 # WoT Client
 # *************************
-import Account
+import account_shared
 
 # *************************
 # X-Mod Code Library
@@ -26,7 +26,7 @@ class ClientInfo(object):
 		'''
 		getClientVersion() -> cluster, version, patch
 		'''
-		return Account._readClientServerVersion()[1].split('_')
+		return account_shared.readClientServerVersion()[1].split('_')
 
 	@classmethod
 	def isCompatibleClientVersion(sclass, application = [None, None, None]):
