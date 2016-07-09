@@ -25,6 +25,7 @@ class BallisticsMath(object):
 	@staticmethod
 	def getPlayerAimingInfo():
 		'''
+		returns a tuple of:
 		dispersionAngle - gun dispersion angle (static gun property),
 		aimingStartTime - time when aiming started,
 		aimingStartFactor - dispersion factor when aiming started,
@@ -33,12 +34,7 @@ class BallisticsMath(object):
 		'''
 		aimingInfo = BigWorld.player()._PlayerAvatar__aimingInfo
 		vehicleTypeDescriptor = BigWorld.player().vehicleTypeDescriptor
-		dispersionAngle = vehicleTypeDescriptor.gun['shotDispersionAngle']
-		aimingStartTime = aimingInfo[0]
-		aimingStartFactor = aimingInfo[1]
-		dispersionFactor = aimingInfo[2]
-		aimingTime = aimingInfo[6]
-		return dispersionAngle, aimingStartTime, aimingStartFactor, dispersionFactor, aimingTime
+		return vehicleTypeDescriptor.gun['shotDispersionAngle'], aimingInfo[0], aimingInfo[1], aimingInfo[2], aimingInfo[6]
 
 	@staticmethod
 	def getAimingFactor(aimingStartTime, aimingStartFactor, dispersionFactor, aimingTime, aimingFactorThreshold = 1.05):

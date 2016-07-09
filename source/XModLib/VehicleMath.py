@@ -23,12 +23,16 @@ import Math
 
 class VehicleMath(object):
 	@staticmethod
-	def getVehicleHeightVector(vehicle):
+	def getVehicleHeight(vehicle):
 		typeDesc = vehicle.typeDescriptor
 		hullTopY = typeDesc.chassis['hullPosition'][1] + typeDesc.hull['hitTester'].bbox[1][1]
 		turretTopY = typeDesc.chassis['hullPosition'][1] + typeDesc.hull['turretPositions'][0][1] + typeDesc.turret['hitTester'].bbox[1][1]
 		gunTopY = typeDesc.chassis['hullPosition'][1] + typeDesc.hull['turretPositions'][0][1] + typeDesc.turret['gunPosition'][1] + typeDesc.gun['hitTester'].bbox[1][1]
-		return Math.Matrix(vehicle.matrix).applyToAxis(1).scale(max(hullTopY, turretTopY, gunTopY))
+		return max(hullTopY, turretTopY, gunTopY)
+
+	@classmethod
+	def getVehicleHeightVector(sclass, vehicle, height=None):
+		return Math.Matrix(vehicle.matrix).applyToAxis(1).scale(height if height is not None else sclass.getVehicleHeight(vehicle))
 
 	@staticmethod
 	def getPlayerVehicleParams():
