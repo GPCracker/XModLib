@@ -3,7 +3,8 @@
 # *************************
 # Python
 # *************************
-# Nothing
+import re
+import gettext
 
 # *************************
 # BigWorld
@@ -18,7 +19,29 @@ import ResMgr
 # *************************
 # X-Mod Code Library
 # *************************
+from .ResMgrUtils import ResMgrUtils
 from .XMLConfigReader import XMLConfigReader, ListXMLReader
+
+class MacrosFormatter(object):
+	HEADER = '\{\{'
+	TRAILER = '\}\}'
+
+	def __init__(self, header = HEADER, trailer = TRAILER):
+		self.header = header
+		self.trailer = trailer
+		return
+
+	def __call__(self, string, *args, **kwargs):
+		regex = re.compile(self.header + '(?P<macros>[^{}]*?)' + self.trailer)
+		def replacement(match):
+			try:
+				return ('{' + match.group('macros') + '}').format(*args, **kwargs)
+			except (IndexError, KeyError, ValueError):
+				return match.group()
+		return regex.sub(replacement, string)
+
+	def __del__(self):
+		return
 
 class UmlautReplace(tuple):
 	def __new__(sclass, iterable):
@@ -57,3 +80,18 @@ class UmlautDecoder(list):
 
 	def __repr__(self):
 		return 'UmlautDecoder({})'.format(super(UmlautDecoder, self).__repr__())
+
+class TranslatorsCache(dict):
+	@staticmethod
+	def _get_translator(domain):
+		path = ResMgrUtils.basepath(ResMgrUtils.join_path('text/LC_MESSAGES', domain + '.mo'))
+		return gettext.translation(domain, path, languages=['text'])
+
+	def __missing__(self, domain):
+		return self.setdefault(domain, self._get_translator(domain))
+
+	def gettext(self, domain, message):
+		return self[domain].gettext(message)
+
+	def __repr__(self):
+		return 'TranslatorsCache({})'.format(super(TranslatorsCache, self).__repr__())
