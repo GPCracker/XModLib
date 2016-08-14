@@ -41,14 +41,14 @@ class BoundingScanner(object):
 		return targets[0] if len(targets) == 1 else None
 
 	@classmethod
-	def getTargets(sclass, filterID=None, filterVehicle=None, maxDistance=720, scalar=1.0, skipPlayer=True):
-		scanDir, scanStart = AvatarInputHandler.cameras.getWorldRayAndPoint(*BigWorld.player().inputHandler.ctrl.getAim().offset())
+	def getTargets(sclass, filterID=None, filterVehicle=None, maxDistance=720.0, scalar=1.0, skipPlayer=True):
+		scanDir, scanStart = AvatarInputHandler.cameras.getWorldRayAndPoint(*BigWorld.player().inputHandler.ctrl._aimOffset)
 		scanDir.normalise()
 		scanStop = scanStart + scanDir * maxDistance
 		return sclass.scanTargets(scanStart, scanStop, Colliders.getVisibleVehicles(filterID, filterVehicle, skipPlayer), scalar)
 
 	@classmethod
-	def getTarget(sclass, filterID=None, filterVehicle=None, maxDistance=720, scalar=1.0, skipPlayer=True):
+	def getTarget(sclass, filterID=None, filterVehicle=None, maxDistance=720.0, scalar=1.0, skipPlayer=True):
 		targets = sclass.getTargets(filterID, filterVehicle, maxDistance, scalar, skipPlayer)
 		return targets[0] if len(targets) == 1 else None
 
