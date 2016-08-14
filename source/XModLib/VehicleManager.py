@@ -20,6 +20,10 @@ import items.vehicles
 # *************************
 from .ArenaInfo import ArenaInfo
 
+## Warning! This file should be updated!
+## Large amount of changes is required here!
+## Do not use it in new versions!
+
 class TagsGroup(object):
 	def __init__(self, include=None, exclude=None):
 		self._include = frozenset(include if include is not None else tuple())

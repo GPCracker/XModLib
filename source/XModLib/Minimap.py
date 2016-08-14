@@ -20,6 +20,10 @@
 # *************************
 from .AppLoader import AppLoader
 
+## Warning! This file is not fixed after WG moved battle interface to AS3!
+## Large amount of changes is required here!
+## Do not use it!
+
 class MinimapEntry(object):
 	@staticmethod
 	def getMinimapOwnUI():
