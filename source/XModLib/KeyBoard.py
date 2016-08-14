@@ -117,7 +117,7 @@ class Shortcut(object):
 		key, modifiers = sclass.parseSequence(sequence)
 		return sclass(key, modifiers, switch=switch, invert=invert, repeat=repeat)
 
-	def __init__(self, key, modifiers, switch=True, invert=False, repeat=False):
+	def __init__(self, key=-1, modifiers=0, switch=True, invert=False, repeat=False):
 		self.key = key
 		self.modifiers = modifiers
 		self.switch = switch
