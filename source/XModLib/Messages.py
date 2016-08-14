@@ -18,8 +18,10 @@ import gui.SystemMessages
 import gui.DialogsInterface
 import gui.shared.notifications
 import gui.Scaleform.framework
+import gui.Scaleform.framework.ViewTypes
 import gui.Scaleform.daapi.settings.views
 import gui.Scaleform.daapi.view.dialogs.SimpleDialog
+import gui.Scaleform.daapi.view.battle.shared.messages.fading_messages
 import notification.settings
 import notification.NotificationMVC
 import notification.actions_handlers
@@ -45,9 +47,12 @@ class Messenger(object):
 		)
 
 	@staticmethod
-	def showMessageOnPanel(panel, key, msgText, color):
-		if AppLoader.getBattleApp() is not None and panel in ['VehicleErrorsPanel', 'VehicleMessagesPanel', 'PlayerMessagesPanel']:
-			AppLoader.getBattleApp().call('battle.' + panel + '.ShowMessage', [key, msgText, color])
+	def showMessageOnPanel(msgType, msgKey, msgText, msgColor):
+		if AppLoader.getBattleApp() is not None and msgType in ['Vehicle', 'VehicleError', 'Player']:
+			panel = AppLoader.getBattleApp().containerManager.getContainer(gui.Scaleform.framework.ViewTypes.VIEW).getView().components['battle' + msgType + 'Messages']
+			methods = gui.Scaleform.daapi.view.battle.shared.messages.fading_messages._COLOR_TO_METHOD
+			if msgColor in methods:
+				getattr(panel, methods[msgColor])(msgKey, msgText)
 		return
 
 	@staticmethod
