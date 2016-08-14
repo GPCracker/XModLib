@@ -25,30 +25,37 @@ class BallisticsMath(object):
 	@staticmethod
 	def getPlayerAimingInfo():
 		'''
-		returns a tuple of:
-		dispersionAngle - gun dispersion angle (static gun property),
-		aimingStartTime - time when aiming started,
-		aimingStartFactor - dispersion factor when aiming started,
-		dispersionFactor - gun dispersion angle factor (gun condition),
-		aimingTime - aiming exp time.
+		PlayerVehicleTypeDescriptor parameters:
+		* staticDispersionAngle - constant dispersion of full aimed not damaged gun (passport gun dispersion).
+		PlayerAvatarAimingInfo parameters:
+		* aimingStartTime - time when aiming was started, since this moment player stopped bothering his vehicle.
+		* aimingStartFactor - dispersion factor at time when aiming was started.
+		* dispersionFactor - gun dispersion angle factor (depends on gun condition).
+		* dispersionFactorTurretRotation - <NotImplemented> (used by WG scripts to calculate other aiming parameters on client side).
+		* dispersionFactorChassisMovement - <NotImplemented> (used by WG scripts to calculate other aiming parameters on client side).
+		* dispersionFactorChassisRotation - <NotImplemented> (used by WG scripts to calculate other aiming parameters on client side).
+		* expAimingTime - aiming exp time (<aimingFactor> decreases exp times every <expAimingTime> seconds).
 		'''
-		aimingInfo = BigWorld.player()._PlayerAvatar__aimingInfo
-		vehicleTypeDescriptor = BigWorld.player().vehicleTypeDescriptor
-		return vehicleTypeDescriptor.gun['shotDispersionAngle'], aimingInfo[0], aimingInfo[1], aimingInfo[2], aimingInfo[6]
+		aimingInfo = getattr(BigWorld.player(), '_PlayerAvatar__aimingInfo', None)
+		if aimingInfo is None or aimingInfo[0] == 0.0:
+			return None
+		aimingStartTime, aimingStartFactor, dispersionFactor, dispersionFactorTurretRotation, dispersionFactorChassisMovement, dispersionFactorChassisRotation, expAimingTime = aimingInfo
+		staticDispersionAngle = BigWorld.player().vehicleTypeDescriptor.gun['shotDispersionAngle']
+		return staticDispersionAngle, aimingStartTime, aimingStartFactor, dispersionFactor, expAimingTime
 
 	@staticmethod
-	def getAimingFactor(aimingStartTime, aimingStartFactor, dispersionFactor, aimingTime, aimingFactorThreshold = 1.05):
-		#Every <aimingTime> seconds dispersion decreases EXP times.
+	def getAimingFactor(aimingStartTime, aimingStartFactor, dispersionFactor, expAimingTime, aimingFactorThreshold = 1.05):
+		#Every <expAimingTime> seconds dispersion decreases EXP times.
 		deltaTime = aimingStartTime - BigWorld.time()
 		deltaFactor = aimingStartFactor / dispersionFactor
 		if abs(deltaFactor) < aimingFactorThreshold:
 			return dispersionFactor
-		return aimingStartFactor * math.exp(deltaTime / aimingTime)
+		return aimingStartFactor * math.exp(deltaTime / expAimingTime)
 
 	@staticmethod
-	def getFullAimingTime(aimingStartFactor, dispersionFactor, aimingTime):
+	def getFullAimingTime(aimingStartFactor, dispersionFactor, expAimingTime):
 		#Calculates time required for dispersion decreasing <aimingStartFactor>/<shotDispersionFactor> times.
-		return aimingTime * math.log(aimingStartFactor / dispersionFactor)
+		return expAimingTime * math.log(aimingStartFactor / dispersionFactor)
 
 	@staticmethod
 	def getRemainingAimingTime(aimingStartTime, fullAimingTime):
