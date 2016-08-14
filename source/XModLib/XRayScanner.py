@@ -22,8 +22,8 @@ from .Colliders import Colliders
 
 class XRayScanner(object):
 	@staticmethod
-	def getTarget(filterID=None, filterVehicle=None, maxDistance=720, skipGun=False, skipPlayer=True):
-		scanDir, scanStart = AvatarInputHandler.cameras.getWorldRayAndPoint(*BigWorld.player().inputHandler.ctrl.getAim().offset())
+	def getTarget(filterID=None, filterVehicle=None, maxDistance=720.0, skipGun=False, skipPlayer=True):
+		scanDir, scanStart = AvatarInputHandler.cameras.getWorldRayAndPoint(*BigWorld.player().inputHandler.ctrl._aimOffset)
 		scanDir.normalise()
 		scanStop = scanStart + scanDir * maxDistance
 		scanResult = Colliders.collideVehicles(Colliders.getVisibleVehicles(filterID, filterVehicle, skipPlayer), scanStart, scanStop, skipGun)
