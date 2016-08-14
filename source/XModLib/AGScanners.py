@@ -21,7 +21,7 @@ import AvatarInputHandler.cameras
 # *************************
 from .Colliders import Colliders
 from .MathUtils import MathUtils
-from .AnalyticGeometry import MatrixBoundingBox, MatrixBoundingSphere
+from .AnalyticGeometry import MatrixBoundingBox, MatrixBoundingEllipse
 
 class BoundingScanner(object):
 	@classmethod
@@ -62,12 +62,12 @@ class BBoxScanner(BoundingScanner):
 			return matrixBoundingBox.collisionSegment(scanStart, scanStop)
 		return filter(checkEntity, entities)
 
-class BSphereScanner(BoundingScanner):
+class BEllipseScanner(BoundingScanner):
 	@classmethod
 	def scanTargets(sclass, scanStart, scanStop, entities, scalar=1.0):
 		scaleMatrix = sclass.getScaleMatrix(scalar)
-		matrixBoundingSphere = MatrixBoundingSphere.new()
+		matrixBoundingEllipse = MatrixBoundingEllipse.new()
 		def checkEntity(entity):
-			matrixBoundingSphere.iBounds = Math.MatrixInverse(MathUtils.getMatrixProduct(scaleMatrix, entity.model.bounds))
-			return matrixBoundingSphere.collisionSegment(scanStart, scanStop)
+			matrixBoundingEllipse.iBounds = Math.MatrixInverse(MathUtils.getMatrixProduct(scaleMatrix, entity.model.bounds))
+			return matrixBoundingEllipse.collisionSegment(scanStart, scanStop)
 		return filter(checkEntity, entities)

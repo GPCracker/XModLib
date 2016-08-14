@@ -473,20 +473,20 @@ class UnitBoundingSphere(BaseBoundingSphere):
 	def __repr__(self):
 		return 'UnitBoundingSphere()'
 
-class MatrixBoundingSphere(UnitBoundingSphere):
+class MatrixBoundingEllipse(UnitBoundingSphere):
 	@classmethod
 	def new(sclass, iBounds=None):
 		return sclass(iBounds if iBounds is not None else MathUtils.getIdentityMatrix())
 
 	def __init__(self, iBounds):
-		super(MatrixBoundingSphere, self).__init__()
+		super(MatrixBoundingEllipse, self).__init__()
 		self.iBounds = iBounds
 		return
 
 	def isPointInsideSphere(self, point):
 		if not isinstance(point, Math.Vector3):
 			raise TypeError('"point" must be an instance of Math.Vector3 class.')
-		return super(MatrixBoundingSphere, self).isPointInsideSphere(Math.Matrix(self.iBounds).applyPoint(point))
+		return super(MatrixBoundingEllipse, self).isPointInsideSphere(Math.Matrix(self.iBounds).applyPoint(point))
 
 	def collisionRay(self, point, vector):
 		if not isinstance(point, Math.Vector3):
@@ -494,7 +494,7 @@ class MatrixBoundingSphere(UnitBoundingSphere):
 		if not isinstance(vector, Math.Vector3):
 			raise TypeError('"vector" must be an instance of Math.Vector3 class.')
 		iMatrix = Math.Matrix(self.iBounds)
-		return super(MatrixBoundingSphere, self).collisionRay(iMatrix.applyPoint(point), iMatrix.applyVector(vector))
+		return super(MatrixBoundingEllipse, self).collisionRay(iMatrix.applyPoint(point), iMatrix.applyVector(vector))
 
 	def collisionSegment(self, point0, point1):
 		if not isinstance(point0, Math.Vector3):
@@ -502,7 +502,7 @@ class MatrixBoundingSphere(UnitBoundingSphere):
 		if not isinstance(point1, Math.Vector3):
 			raise TypeError('"point1" must be an instance of Math.Vector3 class.')
 		iMatrix = Math.Matrix(self.iBounds)
-		return super(MatrixBoundingSphere, self).collisionSegment(iMatrix.applyPoint(point0), iMatrix.applyPoint(point1))
+		return super(MatrixBoundingEllipse, self).collisionSegment(iMatrix.applyPoint(point0), iMatrix.applyPoint(point1))
 
 	def __repr__(self):
-		return 'MatrixBoundingSphere(iBounds={!r})'.format(self.iBounds)
+		return 'MatrixBoundingEllipse(iBounds={!r})'.format(self.iBounds)
