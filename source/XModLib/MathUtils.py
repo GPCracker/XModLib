@@ -59,6 +59,22 @@ class MathUtils(object):
 		return result
 
 	@staticmethod
+	def getVector4Combiner(vector4ProviderA, vector4ProviderB, function):
+		result = Math.Vector4Combiner()
+		result.a = vector4ProviderA
+		result.b = vector4ProviderB
+		result.fn = function
+		return result
+
+	@staticmethod
+	def getVector4MatrixAdaptor(position, source, style):
+		result = Math.Vector4MatrixAdaptor()
+		result.position = position
+		result.source = source
+		result.style = style
+		return result
+
+	@staticmethod
 	def getNormalisedVector(vector):
 		return vector.scale(1.0 / vector.length)
 
