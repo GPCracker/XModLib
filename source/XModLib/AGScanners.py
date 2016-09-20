@@ -25,11 +25,6 @@ from .VehicleBounds import VehicleBounds
 from .AnalyticGeometry import MatrixBoundingBox, MatrixBoundingEllipse
 
 class BoundingScanner(object):
-	@classmethod
-	def scanTargets(sclass, scanStart, scanStop, entities, scalar=1.0):
-		raise NotImplementedError
-		return
-
 	@staticmethod
 	def getVehicleBounds(entity):
 		return getattr(entity, 'collisionBounds', None) or VehicleBounds.getVehicleBoundsMatrixProvider(entity)
@@ -39,6 +34,11 @@ class BoundingScanner(object):
 		scaleMatrix = MathUtils.getScaleMatrix(Math.Vector3(1.0, 1.0, 1.0).scale(scalar))
 		scaleMatrix.postMultiply(MathUtils.getTranslationMatrix(Math.Vector3(-0.5, -0.5, -0.5).scale(scalar - 1.0)))
 		return scaleMatrix
+
+	@classmethod
+	def scanTargets(sclass, scanStart, scanStop, entities, scalar=1.0):
+		raise NotImplementedError
+		return
 
 	@classmethod
 	def scanTarget(sclass, scanStart, scanStop, entities, scalar=1.0):
