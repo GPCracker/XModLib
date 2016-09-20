@@ -23,10 +23,10 @@ from .ResMgrUtils import ResMgrUtils
 from .XMLConfigReader import XMLConfigReader, ListXMLReader
 
 class MacrosFormatter(object):
-	HEADER = '\{\{'
-	TRAILER = '\}\}'
+	HEADER = r'\{\{'
+	TRAILER = r'\}\}'
 
-	def __init__(self, header = HEADER, trailer = TRAILER):
+	def __init__(self, header=HEADER, trailer=TRAILER):
 		self.header = header
 		self.trailer = trailer
 		return
@@ -39,6 +39,9 @@ class MacrosFormatter(object):
 			except (IndexError, KeyError, ValueError):
 				return match.group()
 		return regex.sub(replacement, string)
+
+	def __repr__(self):
+		return 'MacrosFormatter(header={!r}, trailer={!r})'.format(self.header, self.trailer)
 
 	def __del__(self):
 		return
