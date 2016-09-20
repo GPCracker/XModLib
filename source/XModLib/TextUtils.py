@@ -98,3 +98,29 @@ class TranslatorsCache(dict):
 
 	def __repr__(self):
 		return 'TranslatorsCache({})'.format(super(TranslatorsCache, self).__repr__())
+
+class TranslatorFormatter(object):
+	HEADER = r'\#'
+	TRAILER = r'\;'
+	DELIMITER = r'\:'
+
+	def __init__(self, cache, header=HEADER, trailer=TRAILER, delimiter=DELIMITER):
+		self.cache = cache
+		self.header = header
+		self.trailer = trailer
+		self.delimiter = delimiter
+		return
+
+	def __call__(self, string):
+		regex = re.compile(self.header + '(?P<domain>\w+?)' + self.delimiter + '(?P<message>(?:\w+?)(?:/\w+?)*?)' + self.trailer)
+		def replacement(match):
+			domain, message = match.group('domain', 'message')
+			text = self.cache.gettext(domain, message)
+			return text if text != message else match.group()
+		return regex.sub(replacement, string)
+
+	def __repr__(self):
+		return 'TranslatorFormatter(header={!r}, trailer={!r}, delimiter={!r})'.format(self.header, self.trailer, self.delimiter)
+
+	def __del__(self):
+		return
