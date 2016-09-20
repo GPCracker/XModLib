@@ -2,7 +2,7 @@ __application__ = ['X-Mod Code Library', 'XModLib']
 __official_topic__ = None
 __authors__ = ['GPCracker']
 __version__ = '<version>'
-__client__ = [['ru'], '0.9.15.1', None]
+__client__ = [['ru'], '0.9.15.2', None]
 
 if __name__ == '__main__':
 	appInfo = '{appname} ({appshort}) {version} ({client} {clusters}) by {authors}'.format(
