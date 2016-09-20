@@ -55,6 +55,18 @@ class ResMgrXMLReader(XMLReader):
 	def _read_section(self, xml_section, def_section):
 		return getattr(xml_section, 'as' + self.type_name) if xml_section is not None else def_section
 
+class VectorAsTupleXMLReader(XMLReader):
+	VECTOR_TYPE = 'Vector2'
+
+	def _read_section(self, xml_section, def_section):
+		return getattr(xml_section, 'as' + self.VECTOR_TYPE).tuple() if xml_section is not None else def_section
+
+class LocalizedWideStringXMLReader(XMLReader):
+	TRANSLATOR = lambda string: string
+
+	def _read_section(self, xml_section, def_section):
+		return self.TRANSLATOR(getattr(xml_section, 'asWideString') if xml_section is not None else def_section)
+
 class DictXMLReader(XMLReader):
 	def _read_section(self, xml_section, def_section):
 		return {nested_name: self._read_nested_section(xml_section[nested_name] if xml_section is not None else None, def_section[nested_name]) for nested_name in def_section.keys()}
@@ -73,6 +85,13 @@ class CustomDictXMLReader(XMLReader):
 
 	def _read_section(self, xml_section, def_section):
 		return {nested_name: self._read_nested_section(nested_xml_section, (self.ITEM_TYPE, self.ITEM_DEFAULT)) for nested_name, nested_xml_section in xml_section.items()} if xml_section is not None else {nested_name: self._read_nested_section(None, (self.ITEM_TYPE, def_item)) for nested_name, def_item in def_section.items()}
+
+class OptionalDictXMLReader(XMLReader):
+	DEFAULT_KEYS = ()
+	REQUIRED_KEYS = ()
+
+	def _read_section(self, xml_section, def_section):
+		return {nested_name: self._read_nested_section(xml_section[nested_name] if xml_section is not None else None, def_section[nested_name]) for nested_name in def_section.keys() if nested_name in self.REQUIRED_KEYS or ((xml_section[nested_name] is not None) if (xml_section is not None) else (nested_name in self.DEFAULT_KEYS))}
 
 class XMLReaderClassCollection(dict):
 	RESMGR_TYPES = ('Binary', 'Blob', 'Bool', 'Float', 'Int', 'Int64', 'Matrix', 'String', 'Vector2', 'Vector3', 'Vector4', 'WideString')
