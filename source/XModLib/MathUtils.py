@@ -59,6 +59,13 @@ class MathUtils(object):
 		return result
 
 	@staticmethod
+	def getCombinedMatrixProvider(translationMatrixProvider, rotationMatrixProvider):
+		result = Math.WGCombinedMP()
+		result.translationSrc = translationMatrixProvider
+		result.rotationSrc = rotationMatrixProvider
+		return result
+
+	@staticmethod
 	def getVector4Combiner(vector4ProviderA, vector4ProviderB, function):
 		result = Math.Vector4Combiner()
 		result.a = vector4ProviderA
