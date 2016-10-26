@@ -73,35 +73,42 @@ class Colliders(object):
 		return (collisionResult, ) if collisionResult is not None else None
 
 	@staticmethod
-	def computeProjectileTrajectoryEnd(vehicleTypeDescriptor, vehicleMatrix, turretYaw, gunPitch, colliders):
-		shotRay, shotPoint = VehicleMath.getShotRayAndPoint(vehicleTypeDescriptor, vehicleMatrix, turretYaw, gunPitch)
-		shotSpeed = shotRay.scale(vehicleTypeDescriptor.shot['speed'])
-		shotGravity = Math.Vector3(0, -1, 0).scale(vehicleTypeDescriptor.shot['gravity'])
-		currentPoint, currentSpeed = Math.Vector3(shotPoint), Math.Vector3(shotSpeed)
-		hitPoint, hitVector, hitResult = None, None, None
+	def computeProjectileTrajectoryEnd(shotPoint, shotVector, shotGravity, colliders):
+		currentTime, currentPoint, currentSpeed = 0.0, shotPoint, shotVector
+		hitPoint, hitVector, hitResult, hitCollider = None, None, None, None
 		while True:
 			checkPoints = BigWorld.wg_computeProjectileTrajectory(currentPoint, currentSpeed, shotGravity, constants.SERVER_TICK_LENGTH, constants.SHELL_TRAJECTORY_EPSILON_CLIENT)
 			collisionTestStart = currentPoint
 			for collisionTestStop in checkPoints:
-				collisionResults = list()
+				collisions = list()
 				for collider in colliders:
 					collisionResult = collider(collisionTestStart, collisionTestStop)
 					if collisionResult is not None:
-						collisionResults.append(collisionResult)
-				if collisionResults:
-					collisionResult = min(collisionResults, key = lambda collisionResult: collisionResult[0].distTo(collisionTestStart))
-					hitPoint = collisionResult[0]
+						collisions.append((collider, collisionResult))
+				if collisions:
+					collision = min(collisions, key=lambda collision: collision[1][0].distSqrTo(collisionTestStart))
+					hitPoint = collision[1][0]
 					hitVector = MathUtils.getNormalisedVector(collisionTestStop - collisionTestStart)
-					hitResult = collisionResult
+					hitResult = collision[1]
+					hitCollider = collision[0]
 					break
 				collisionTestStart = collisionTestStop
-			if hitResult is not None and hitPoint is not None and hitVector is not None:
+			if hitResult is not None and hitPoint is not None and hitVector is not None and hitCollider is not None:
 				break
-			currentPoint += currentSpeed.scale(constants.SERVER_TICK_LENGTH) + shotGravity.scale(constants.SERVER_TICK_LENGTH ** 2 * 0.5)
-			currentSpeed += shotGravity.scale(constants.SERVER_TICK_LENGTH)
-		return hitPoint, hitVector, hitResult
+			currentTime += constants.SERVER_TICK_LENGTH
+			# Additional calculation type has less accuracy.
+			currentPoint = shotPoint + shotVector.scale(currentTime) + shotGravity.scale(currentTime * currentTime * 0.5)
+			currentSpeed = shotVector + shotGravity.scale(currentTime)
+		return hitPoint, hitVector, hitResult, hitCollider
 
 	@classmethod
-	def computePlayerProjectileTrajectoryEnd(sclass, colliders):
+	def computeVehicleProjectileTrajectoryEnd(sclass, vehicleTypeDescriptor, vehicleMatrix, turretYaw, gunPitch, colliders):
+		shotRay, shotPoint = VehicleMath.getShotRayAndPoint(vehicleTypeDescriptor, vehicleMatrix, turretYaw, gunPitch)
+		shotVector = shotRay.scale(vehicleTypeDescriptor.shot['speed'])
+		shotGravity = Math.Vector3(0, -1, 0).scale(vehicleTypeDescriptor.shot['gravity'])
+		return sclass.computeProjectileTrajectoryEnd(shotPoint, shotVector, shotGravity, colliders)
+
+	@classmethod
+	def computePlayerVehicleProjectileTrajectoryEnd(sclass, colliders):
 		vehicleTypeDescriptor, vehicleMatrix, turretYaw, gunPitch = VehicleMath.getPlayerVehicleParams()
-		return sclass.computeProjectileTrajectoryEnd(vehicleTypeDescriptor, vehicleMatrix, turretYaw, gunPitch, colliders)
+		return sclass.computeVehicleProjectileTrajectoryEnd(vehicleTypeDescriptor, vehicleMatrix, turretYaw, gunPitch, colliders)
