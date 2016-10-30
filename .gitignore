@@ -2,6 +2,8 @@
 build/
 # Excluding release
 release/
+# Excluding tools
+tools/
 # Excluding topic
 topic/
 # Excluding temp
