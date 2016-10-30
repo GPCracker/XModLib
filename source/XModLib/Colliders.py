@@ -17,7 +17,7 @@ import Math
 import constants
 
 # *************************
-# X-Mod Code Library
+# X-Mod Library
 # *************************
 from .MathUtils import MathUtils
 from .VehicleMath import VehicleMath

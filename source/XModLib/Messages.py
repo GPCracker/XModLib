@@ -30,7 +30,7 @@ import messenger.ext.channel_num_gen
 import messenger.formatters.collections_by_type
 
 # *************************
-# X-Mod Code Library
+# X-Mod Library
 # *************************
 from .AppLoader import AppLoader
 

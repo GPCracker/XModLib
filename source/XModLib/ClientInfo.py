@@ -16,7 +16,7 @@
 import account_shared
 
 # *************************
-# X-Mod Code Library
+# X-Mod Library
 # *************************
 # Nothing
 

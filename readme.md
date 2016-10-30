@@ -1,6 +1,6 @@
-## X-Mod Python Library
+## X-Mod Library
 
-X-Mod is a python code library for World of Tanks mods. It provides
+X-Mod is a code library for World of Tanks mods. It provides
 
 * Simple access to arena requests (score, squad, player status)
 * Simple callback control and callback-based classes
@@ -21,7 +21,7 @@ X-Mod is a python code library for World of Tanks mods. It provides
 * Vehicle info class (vehicle entity-based info)
 * Vehicle math module (model calculations and matrix transformations)
 
-## X-Mod Python Library Usage
+## X-Mod Library Usage
 
 X-Mod is an important part (a core module) of several mods and is being developed as a common script storage for them. This approach prevents code doubling between mods, providing single change history. Author does not aim to implement features required in neither of his mods here.
 

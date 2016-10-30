@@ -16,7 +16,7 @@ import BigWorld
 import items.vehicles
 
 # *************************
-# X-Mod Code Library
+# X-Mod Library
 # *************************
 from .ArenaInfo import ArenaInfo
 

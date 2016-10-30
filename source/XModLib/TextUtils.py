@@ -17,7 +17,7 @@ import ResMgr
 # Nothing
 
 # *************************
-# X-Mod Code Library
+# X-Mod Library
 # *************************
 from .ResMgrUtils import ResMgrUtils
 from .XMLConfigReader import XMLConfigReader, ListXMLReader

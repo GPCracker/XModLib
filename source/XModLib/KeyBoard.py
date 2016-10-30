@@ -17,7 +17,7 @@ import Keys
 # Nothing
 
 # *************************
-# X-Mod Code Library
+# X-Mod Library
 # *************************
 # Nothing
 

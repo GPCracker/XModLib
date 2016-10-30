@@ -1,4 +1,4 @@
-__application__ = ['X-Mod Python Library', 'XModLib']
+__application__ = ['X-Mod Library', 'XModLib']
 __official_topic__ = None
 __authors__ = ['GPCracker']
 __version__ = '<version>'

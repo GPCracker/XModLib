@@ -17,7 +17,7 @@ import Math
 import AvatarInputHandler.cameras
 
 # *************************
-# X-Mod Code Library
+# X-Mod Library
 # *************************
 from .Colliders import Colliders
 from .MathUtils import MathUtils

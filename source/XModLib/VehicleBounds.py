@@ -16,7 +16,7 @@ import Math
 # Nothing
 
 # *************************
-# X-Mod Code Library
+# X-Mod Library
 # *************************
 from .MathUtils import MathUtils
 

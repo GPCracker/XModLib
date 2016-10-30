@@ -17,7 +17,7 @@ import BigWorld
 # Nothing
 
 # *************************
-# X-Mod Code Library
+# X-Mod Library
 # *************************
 # Nothing
 

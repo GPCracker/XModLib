@@ -16,7 +16,7 @@
 # Nothing
 
 # *************************
-# X-Mod Code Library
+# X-Mod Library
 # *************************
 from .AppLoader import AppLoader
 

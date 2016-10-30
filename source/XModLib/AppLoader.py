@@ -16,7 +16,7 @@
 import gui.app_loader
 
 # *************************
-# X-Mod Code Library
+# X-Mod Library
 # *************************
 # Nothing
 

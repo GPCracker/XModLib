@@ -16,7 +16,7 @@
 import gui.battle_control
 
 # *************************
-# X-Mod Code Library
+# X-Mod Library
 # *************************
 # Nothing
 
