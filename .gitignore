@@ -10,3 +10,7 @@ topic/
 temp/
 # Excluding version
 version.cfg
+# Excluding actionscript binaries
+gui/actionscript/bin/
+gui/actionscript/obj/
+gui/actionscript/swc/
