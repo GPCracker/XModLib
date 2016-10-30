@@ -280,16 +280,17 @@ if __name__ == '__main__':
 		# Plug-in build command.
 		def g_pythonBuildPluginAttachGroup(att_entry, level=0):
 			# Parsing resource entry.
-			att_filename, src_entries = att_entry
+			att_filename, att_comment, src_entries = att_entry
 			# Formatting macros.
 			att_filename = norm_path(format_macros(att_filename, g_allMacros))
+			att_comment = format_macros(att_comment, g_allMacros).encode('ascii')
 			# Printing status.
 			indent = ' ' * level
 			print indent + 'Building plug-in attach group: {}.'.format(att_filename)
 			# Building zip archive attachment.
 			dst_bin_data = compile_zipfile_string(itertools.chain.from_iterable(
 				[g_pythonBuildSourceGroup(src_entry, level=level + 1) for src_entry in src_entries]
-			))
+			), att_comment)
 			return att_filename, dst_bin_data
 		## Resource build commands.
 		# Resource build command.
