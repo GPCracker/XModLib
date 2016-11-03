@@ -4,6 +4,7 @@
 # Python
 # *************************
 import weakref
+import itertools
 
 # *************************
 # BigWorld
@@ -20,23 +21,41 @@ import ResMgr
 # *************************
 # Nothing
 
-class XMLReader(object):
+class XMLReaderMeta(object):
+	__slots__ = ('reader_name', 'collection_proxy')
+
 	@classmethod
-	def new_class(sclass, class_name, **kwargs):
+	def _construct_class(sclass, class_name, **kwargs):
 		return type(class_name, (sclass, ), kwargs)
 
-	def __init__(self, type_name, reader_collection_proxy):
-		self.type_name = type_name
-		self.reader_collection_proxy = reader_collection_proxy
+	@staticmethod
+	def _iter_xml_section_items(xml_section):
+		for nested_name, nested_xml_section in xml_section.items():
+			if not nested_xml_section.isAttribute:
+				yield nested_name, nested_xml_section
+		return
+
+	@staticmethod
+	def _iter_xml_section_attributes(xml_section):
+		for nested_name, nested_xml_section in xml_section.items():
+			if nested_xml_section.isAttribute:
+				yield nested_name, nested_xml_section
+		return
+
+	def __init__(self, reader_name, collection_proxy):
+		super(XMLReaderMeta, self).__init__()
+		self.reader_name = reader_name
+		self.collection_proxy = collection_proxy
 		return
 
 	def _override_section(self, xml_section):
 		override = xml_section['override'] if xml_section is not None else None
-		return self._override_section(self.reader_collection_proxy.open_section(override.asString)) if override is not None and override.isAttribute else xml_section
+		if override is not None and override.isAttribute:
+			xml_section = self._override_section(self.collection_proxy.open_section(override.asString))
+		return xml_section
 
 	def _read_nested_section(self, xml_section, def_item):
-		reader_type_name, def_section = self.reader_collection_proxy.parse_default_item(def_item)
-		return self.reader_collection_proxy[reader_type_name](xml_section, def_section)
+		return self.collection_proxy(xml_section, def_item)
 
 	def _read_section(self, xml_section, def_section):
 		raise NotImplementedError
@@ -46,101 +65,172 @@ class XMLReader(object):
 		return self._read_section(self._override_section(xml_section), def_section)
 
 	def __repr__(self):
-		return '{}(type_name={!r}, reader_collection_proxy={!r})'.format(type(self).__name__, self.type_name, self.reader_collection_proxy)
+		return '{}(reader_name={!r}, collection_proxy={!r})'.format(type(self).__name__, self.reader_name, self.collection_proxy)
 
 	def __del__(self):
 		return
 
-class ResMgrXMLReader(XMLReader):
-	def _read_section(self, xml_section, def_section):
-		return getattr(xml_section, 'as' + self.type_name) if xml_section is not None else def_section
+class ResMgrXMLReaderMeta(XMLReaderMeta):
+	__slots__ = ()
 
-class VectorAsTupleXMLReader(XMLReader):
-	VECTOR_TYPE = 'Vector2'
-
-	def _read_section(self, xml_section, def_section):
-		return getattr(xml_section, 'as' + self.VECTOR_TYPE).tuple() if xml_section is not None else def_section
-
-class LocalizedWideStringXMLReader(XMLReader):
-	TRANSLATOR = lambda string: string
+	@classmethod
+	def construct(sclass, class_name):
+		return sclass._construct_class(class_name)
 
 	def _read_section(self, xml_section, def_section):
-		return self.TRANSLATOR(getattr(xml_section, 'asWideString') if xml_section is not None else def_section)
+		return getattr(xml_section, 'as' + self.reader_name) if xml_section is not None else def_section
 
-class DictXMLReader(XMLReader):
-	def _read_section(self, xml_section, def_section):
-		return {nested_name: self._read_nested_section(xml_section[nested_name] if xml_section is not None else None, def_section[nested_name]) for nested_name in def_section.keys()}
+class VectorAsTupleXMLReaderMeta(XMLReaderMeta):
+	__slots__ = ()
 
-class ListXMLReader(XMLReader):
-	ITEM_NAME = 'item'
-	ITEM_TYPE = 'String'
-	ITEM_DEFAULT = ''
+	@classmethod
+	def construct(sclass, class_name, vector_type='Vector2'):
+		return sclass._construct_class(class_name, vector_type=vector_type)
 
 	def _read_section(self, xml_section, def_section):
-		return [self._read_nested_section(nested_xml_section, (self.ITEM_TYPE, self.ITEM_DEFAULT)) for nested_name, nested_xml_section in xml_section.items() if nested_name == self.ITEM_NAME] if xml_section is not None else [self._read_nested_section(None, (self.ITEM_TYPE, def_item)) for def_item in def_section]
+		if getattr(self, 'vector_type', None) is None:
+			raise AttributeError('Vector type is undefined or None.')
+		return getattr(xml_section, 'as' + self.vector_type).tuple() if xml_section is not None else def_section
 
-class CustomDictXMLReader(XMLReader):
-	ITEM_TYPE = 'String'
-	ITEM_DEFAULT = ''
+class LocalizedWideStringXMLReaderMeta(XMLReaderMeta):
+	__slots__ = ()
+
+	@classmethod
+	def construct(sclass, class_name, translator=None):
+		translator = staticmethod(translator if translator is not None else lambda string: string)
+		return sclass._construct_class(class_name, translator=translator)
 
 	def _read_section(self, xml_section, def_section):
-		return {nested_name: self._read_nested_section(nested_xml_section, (self.ITEM_TYPE, self.ITEM_DEFAULT)) for nested_name, nested_xml_section in xml_section.items()} if xml_section is not None else {nested_name: self._read_nested_section(None, (self.ITEM_TYPE, def_item)) for nested_name, def_item in def_section.items()}
+		if getattr(self, 'translator', None) is None:
+			raise AttributeError('Translator is undefined or None.')
+		return self.translator(getattr(xml_section, 'asWideString') if xml_section is not None else def_section)
 
-class OptionalDictXMLReader(XMLReader):
-	DEFAULT_KEYS = ()
-	REQUIRED_KEYS = ()
+class AttributeBasedXMLReaderMeta(XMLReaderMeta):
+	__slots__ = ()
+
+	@classmethod
+	def construct(sclass, class_name):
+		return sclass._construct_class(class_name)
 
 	def _read_section(self, xml_section, def_section):
-		return {nested_name: self._read_nested_section(xml_section[nested_name] if xml_section is not None else None, def_section[nested_name]) for nested_name in def_section.keys() if nested_name in self.REQUIRED_KEYS or ((xml_section[nested_name] is not None) if (xml_section is not None) else (nested_name in self.DEFAULT_KEYS))}
+		if xml_section is not None:
+			reader = xml_section['reader']
+			if reader is None or not reader.isAttribute:
+				raise TypeError('Expected \'reader\' attribute does not exist or has invalid value.')
+			return self.collection_proxy[reader.asString](xml_section, def_section)
+		return def_section
 
-class XMLReaderClassCollection(dict):
-	RESMGR_TYPES = ('Binary', 'Blob', 'Bool', 'Float', 'Int', 'Int64', 'Matrix', 'String', 'Vector2', 'Vector3', 'Vector4', 'WideString')
-	READER_TYPES = {
-		'Dict': DictXMLReader
-	}
+class DictXMLReaderMeta(XMLReaderMeta):
+	__slots__ = ()
 
-	def __init__(self, *args, **kwargs):
-		reader_class_collection = {type_name: ResMgrXMLReader for type_name in self.RESMGR_TYPES}
-		reader_class_collection.update(self.READER_TYPES)
-		reader_class_collection.update(*args, **kwargs)
-		return super(XMLReaderClassCollection, self).__init__(reader_class_collection)
+	@classmethod
+	def construct(sclass, class_name):
+		return sclass._construct_class(class_name)
 
-	def __new__(sclass, *args, **kwargs):
-		return super(XMLReaderClassCollection, sclass).__new__(sclass)
+	def _read_section(self, xml_section, def_section):
+		return {nested_name: self._read_nested_section(xml_section[nested_name] if xml_section is not None else None, def_section[nested_name]) for nested_name in def_section.iterkeys()}
 
-	def __repr__(self):
-		return 'XMLReaderClassCollection({})'.format(super(XMLReaderClassCollection, self).__repr__())
+class ListXMLReaderMeta(XMLReaderMeta):
+	__slots__ = ()
+
+	@classmethod
+	def construct(sclass, class_name, item_name='item', item_type='String', item_default=''):
+		return sclass._construct_class(class_name, item_name=item_name, item_type=item_type, item_default=item_default)
+
+	def _read_section(self, xml_section, def_section):
+		if getattr(self, 'item_name', None) is None:
+			raise AttributeError('Item name is undefined or None.')
+		if getattr(self, 'item_type', None) is None:
+			raise AttributeError('Item type is undefined or None.')
+		if getattr(self, 'item_default', None) is None:
+			raise AttributeError('Item default value is undefined or None.')
+		if xml_section is not None:
+			return [self._read_nested_section(nested_xml_section, (self.item_type, self.item_default)) for nested_name, nested_xml_section in self._iter_xml_section_items(xml_section) if nested_name == self.item_name]
+		return [self._read_nested_section(None, (self.item_type, def_item)) for def_item in def_section]
+
+class CustomDictXMLReaderMeta(XMLReaderMeta):
+	__slots__ = ()
+
+	@classmethod
+	def construct(sclass, class_name, item_type='String', item_default=''):
+		return sclass._construct_class(class_name, item_type=item_type, item_default=item_default)
+
+	def _read_section(self, xml_section, def_section):
+		if getattr(self, 'item_type', None) is None:
+			raise AttributeError('Item type is undefined or None.')
+		if getattr(self, 'item_default', None) is None:
+			raise AttributeError('Item default value is undefined or None.')
+		if xml_section is not None:
+			return {nested_name: self._read_nested_section(nested_xml_section, (self.item_type, self.item_default)) for nested_name, nested_xml_section in self._iter_xml_section_items(xml_section)}
+		return {nested_name: self._read_nested_section(None, (self.item_type, def_item)) for nested_name, def_item in def_section.iteritems()}
+
+class OptionalDictXMLReaderMeta(XMLReaderMeta):
+	__slots__ = ()
+
+	@classmethod
+	def construct(sclass, class_name, required_keys=(), default_keys=()):
+		return sclass._construct_class(class_name, required_keys=required_keys, default_keys=default_keys)
+
+	def _read_section(self, xml_section, def_section):
+		if getattr(self, 'required_keys', None) is None:
+			raise AttributeError('Required keys are undefined or None.')
+		if getattr(self, 'default_keys', None) is None:
+			raise AttributeError('Default keys are undefined or None.')
+		if xml_section is not None:
+			return {nested_name: self._read_nested_section(xml_section[nested_name], def_section[nested_name]) for nested_name in def_section.iterkeys() if nested_name in self.required_keys or xml_section[nested_name] is not None}
+		return {nested_name: self._read_nested_section(None, def_section[nested_name]) for nested_name in def_section.iterkeys() if nested_name in self.required_keys or nested_name in self.default_keys}
 
 class XMLReaderCollection(dict):
+	__slots__ = ('__weakref__', )
+
+	RESMGR_TYPES = (
+		('Binary', ResMgrXMLReaderMeta.construct('BinaryXMLReader')),
+		('Blob', ResMgrXMLReaderMeta.construct('BlobXMLReader')),
+		('Bool', ResMgrXMLReaderMeta.construct('BoolXMLReader')),
+		('Float', ResMgrXMLReaderMeta.construct('FloatXMLReader')),
+		('Int', ResMgrXMLReaderMeta.construct('IntXMLReader')),
+		('Int64', ResMgrXMLReaderMeta.construct('Int64XMLReader')),
+		('Matrix', ResMgrXMLReaderMeta.construct('MatrixXMLReader')),
+		('String', ResMgrXMLReaderMeta.construct('StringXMLReader')),
+		('Vector2', ResMgrXMLReaderMeta.construct('Vector2XMLReader')),
+		('Vector3', ResMgrXMLReaderMeta.construct('Vector3XMLReader')),
+		('Vector4', ResMgrXMLReaderMeta.construct('Vector4XMLReader')),
+		('WideString', ResMgrXMLReaderMeta.construct('WideStringXMLReader'))
+	)
+	READER_TYPES = (
+		('Dict', DictXMLReaderMeta.construct('DictXMLReader')),
+	)
+
 	@staticmethod
 	def open_section(xml_path):
 		return ResMgr.openSection(xml_path)
 
-	@classmethod
-	def new(sclass, reader_class_collection):
-		reader_collection = sclass()
-		reader_collection.update({type_name: reader_class(type_name, weakref.proxy(reader_collection)) for type_name, reader_class in reader_class_collection.items()})
-		return reader_collection
+	def __init__(self, custom_types=()):
+		super(XMLReaderCollection, self).__init__()
+		self.update(itertools.starmap(
+			lambda reader_name, reader_class: (reader_name, reader_class(reader_name, weakref.proxy(self))),
+			itertools.chain(self.RESMGR_TYPES, self.READER_TYPES, custom_types)
+		))
+		return
 
-	def __init__(self):
-		return super(XMLReaderCollection, self).__init__()
+	def __new__(sclass, *args, **kwargs):
+		return super(XMLReaderCollection, sclass).__new__(sclass)
 
 	def parse_default_item(self, def_item):
 		if isinstance(def_item, dict):
 			return 'Dict', def_item
-		elif isinstance(def_item, (list, tuple)):
-			return def_item
-		raise TypeError('Invalid default config item type "{}"'.format(type(def_item).__name__))
-		return None
+		if not isinstance(def_item, (list, tuple)):
+			raise TypeError('Invalid default config item type "{}".'.format(type(def_item).__name__))
+		return def_item
 
 	def __call__(self, xml_section, def_item):
-		reader_type_name, def_section = self.parse_default_item(def_item)
-		return self[reader_type_name](xml_section, def_section)
+		reader_name, def_section = self.parse_default_item(def_item)
+		if xml_section is not None and xml_section.isAttribute:
+			xml_section = None
+		return self[reader_name](xml_section, def_section)
 
 	def __repr__(self):
 		return '{}:{}'.format(object.__repr__(self), super(XMLReaderCollection, self).__repr__())
 
 class XMLConfigReader(XMLReaderCollection):
-	@classmethod
-	def new(sclass, *args, **kwargs):
-		return super(XMLConfigReader, sclass).new(XMLReaderClassCollection(*args, **kwargs))
+	pass

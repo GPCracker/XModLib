@@ -20,7 +20,7 @@ import ResMgr
 # X-Mod Library
 # *************************
 from .ResMgrUtils import ResMgrUtils
-from .XMLConfigReader import XMLConfigReader, ListXMLReader
+from .XMLConfigReader import XMLConfigReader, ListXMLReaderMeta
 
 class MacrosFormatter(object):
 	HEADER = r'\{\{'
@@ -62,17 +62,17 @@ class UmlautReplace(tuple):
 class UmlautDecoder(list):
 	@classmethod
 	def from_xml(sclass, xml):
-		xml_config_reader = XMLConfigReader.new({
-			'UmlautReplaceList': ListXMLReader.new_class(
-				'UmlautReplaceListReader',
-				ITEM_NAME = 'umlaut',
-				ITEM_TYPE = 'Dict',
-				ITEM_DEFAULT = {
+		xml_config_reader = XMLConfigReader((
+			('UmlautReplaceList', ListXMLReaderMeta.construct(
+				'UmlautReplaceListXMLReader',
+				item_name='umlaut',
+				item_type='Dict',
+				item_default={
 					'uml': ('WideString', u''),
 					'rpl': ('WideString', u'')
 				}
-			)
-		})
+			))
+		))
 		xml_section = xml if isinstance(xml, ResMgr.DataSection) else xml_config_reader.open_section(xml)
 		return sclass(map(lambda umlaut_replace: UmlautReplace((umlaut_replace['uml'], umlaut_replace['rpl'])), xml_config_reader(xml_section, ('UmlautReplaceList', []))))
 
