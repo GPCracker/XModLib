@@ -48,12 +48,6 @@ class XMLReaderMeta(object):
 		self.collection_proxy = collection_proxy
 		return
 
-	def _override_section(self, xml_section):
-		override = xml_section['override'] if xml_section is not None else None
-		if override is not None and override.isAttribute:
-			xml_section = self._override_section(self.collection_proxy.open_section(override.asString))
-		return xml_section
-
 	def _read_nested_section(self, xml_section, def_item):
 		return self.collection_proxy(xml_section, def_item)
 
@@ -62,7 +56,7 @@ class XMLReaderMeta(object):
 		return None
 
 	def __call__(self, xml_section, def_section):
-		return self._read_section(self._override_section(xml_section), def_section)
+		return self._read_section(xml_section, def_section)
 
 	def __repr__(self):
 		return '{}(reader_name={!r}, collection_proxy={!r})'.format(type(self).__name__, self.reader_name, self.collection_proxy)
@@ -205,6 +199,13 @@ class XMLReaderCollection(dict):
 	def open_section(xml_path):
 		return ResMgr.openSection(xml_path)
 
+	@classmethod
+	def _override_section(sclass, xml_section):
+		override = xml_section['override'] if xml_section is not None else None
+		if override is not None and override.isAttribute:
+			xml_section = sclass._override_section(sclass.open_section(override.asString))
+		return xml_section
+
 	def __init__(self, custom_types=()):
 		super(XMLReaderCollection, self).__init__()
 		self.update(itertools.starmap(
@@ -216,7 +217,7 @@ class XMLReaderCollection(dict):
 	def __new__(sclass, *args, **kwargs):
 		return super(XMLReaderCollection, sclass).__new__(sclass)
 
-	def parse_default_item(self, def_item):
+	def _parse_default_item(self, def_item):
 		if isinstance(def_item, dict):
 			return 'Dict', def_item
 		if not isinstance(def_item, (list, tuple)):
@@ -224,10 +225,10 @@ class XMLReaderCollection(dict):
 		return def_item
 
 	def __call__(self, xml_section, def_item):
-		reader_name, def_section = self.parse_default_item(def_item)
+		reader_name, def_section = self._parse_default_item(def_item)
 		if xml_section is not None and xml_section.isAttribute:
 			xml_section = None
-		return self[reader_name](xml_section, def_section)
+		return self[reader_name](self._override_section(xml_section), def_section)
 
 	def __repr__(self):
 		return '{}:{}'.format(object.__repr__(self), super(XMLReaderCollection, self).__repr__())
