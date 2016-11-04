@@ -71,7 +71,7 @@ class UmlautDecoder(list):
 					'uml': ('WideString', u''),
 					'rpl': ('WideString', u'')
 				}
-			))
+			)),
 		))
 		xml_section = xml if isinstance(xml, ResMgr.DataSection) else xml_config_reader.open_section(xml)
 		return sclass(map(lambda umlaut_replace: UmlautReplace((umlaut_replace['uml'], umlaut_replace['rpl'])), xml_config_reader(xml_section, ('UmlautReplaceList', []))))
