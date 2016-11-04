@@ -3,6 +3,7 @@
 # *************************
 # Python
 # *************************
+import os.path
 import weakref
 import itertools
 
@@ -195,9 +196,17 @@ class XMLReaderCollection(dict):
 		('Dict', DictXMLReaderMeta.construct('DictXMLReader')),
 	)
 
-	@staticmethod
-	def open_section(xml_path):
+	@classmethod
+	def open_section(sclass, xml_path, skip_test=False):
+		if not skip_test and not sclass._test_xml_path(xml_path):
+			raise RuntimeError('ResMgr path \'{}\' is invalid, file is missing or bad.'.format(xml_path))
 		return ResMgr.openSection(xml_path)
+
+	@classmethod
+	def _test_xml_path(sclass, xml_path):
+		if ResMgr.isFile(xml_path):
+			return ResMgr.openSection(xml_path) is not None
+		return not ResMgr.isDir(xml_path) and sclass._test_xml_path(os.path.normpath(os.path.join(xml_path, '../')).replace(os.sep, '/'))
 
 	@classmethod
 	def _override_section(sclass, xml_section):
