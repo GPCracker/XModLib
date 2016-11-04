@@ -34,6 +34,11 @@ class TextPanelMeta(BattleViewComponentBase):
 			return self.flashObject.as_toggleCursor(enabled)
 		return
 
+	def as_changeAppResolutionS(self, width, height):
+		if self._isDAAPIInited():
+			return self.flashObject.as_changeAppResolution(width, height)
+		return
+
 	def as_setBackgroundS(self, image):
 		if self._isDAAPIInited():
 			return self.flashObject.as_setBackground(image)

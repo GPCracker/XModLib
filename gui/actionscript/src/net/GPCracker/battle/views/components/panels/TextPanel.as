@@ -17,6 +17,12 @@ package net.GPCracker.battle.views.components.panels
 		public var textField:PanelText = null;
 		public var tooltip:String = "";
 
+		private var _stageWidth:Number = 1024;
+		private var _stageHeight:Number = 768;
+
+		private var _positionX:Number = 0.0;
+		private var _positionY:Number = 0.0;
+
 		public function TextPanel()
 		{
 			super();
@@ -39,6 +45,8 @@ package net.GPCracker.battle.views.components.panels
 			this.addChildAt(this.textField, 1);
 			// Instance configuration.
 			this.setSize(TextPanel.DEFAULT_WIDTH, TextPanel.DEFAULT_HEIGHT);
+			// Retrieving stage parameters.
+			this.updateStage(App.appWidth, App.appHeight);
 			return;
 		}
 
@@ -70,12 +78,20 @@ package net.GPCracker.battle.views.components.panels
 			return;
 		}
 
+		private function onDragUpdatePosition():void
+		{
+			this._positionX = +((this.x + (this.width >> 1)) / (this._stageWidth >> 1) - 1.0);
+			this._positionY = -((this.y + (this.height >> 1)) / (this._stageHeight >> 1) - 1.0);
+			return;
+		}
+
 		private function onDragStart(event:MouseEvent):void
 		{
 			App.toolTipMgr.hide();
 			this.unregisterMouseHoverEvents();
 			this.textBorder.setColor(0x000000);
-			this.py_onPanelDragS(this.x, this.y);
+			this.py_onPanelDragS(this._positionX, this._positionY);
+			this.onDragUpdatePosition();
 			this.startDrag();
 			return;
 		}
@@ -83,7 +99,8 @@ package net.GPCracker.battle.views.components.panels
 		private function onDragStop(event:MouseEvent):void
 		{
 			this.stopDrag();
-			this.py_onPanelDropS(this.x, this.y);
+			this.onDragUpdatePosition();
+			this.py_onPanelDropS(this._positionX, this._positionY);
 			this.textBorder.setColor(0x999999);
 			this.registerMouseHoverEvents();
 			App.toolTipMgr.show(this.tooltip);
@@ -106,10 +123,33 @@ package net.GPCracker.battle.views.components.panels
 			return;
 		}
 
+		private function updatePosition():void
+		{
+			this.x = (1.0 + this._positionX) * (this._stageWidth >> 1) - (this.width >> 1);
+			this.y = (1.0 - this._positionY) * (this._stageHeight >> 1) - (this.height >> 1);
+			return;
+		}
+
+		private function updateStage(width:Number, height:Number):void
+		{
+			this._stageWidth = width;
+			this._stageHeight = height;
+			this.updatePosition();
+			return;
+		}
+
 		private function setAlpha(alpha:Number):void
 		{
 			this.textBackground.alpha = alpha;
 			this.textField.alpha = alpha;
+			return;
+		}
+
+		private function setPosition(x:Number, y:Number):void
+		{
+			this._positionX = Math.max(-1.0, Math.min(+1.0, x));
+			this._positionY = Math.max(-1.0, Math.min(+1.0, y));
+			this.updatePosition();
 			return;
 		}
 
@@ -119,6 +159,7 @@ package net.GPCracker.battle.views.components.panels
 			this.textField.width = width;
 			this.textField.height = height;
 			this.textBorder.drawRect(this);
+			this.updatePosition();
 			return;
 		}
 
@@ -135,6 +176,12 @@ package net.GPCracker.battle.views.components.panels
 				this.unregisterMouseClickEvents()
 				this.unregisterMouseHoverEvents()
 			}
+			return;
+		}
+
+		public function as_changeAppResolution(width, height):void
+		{
+			this.updateStage(width, height);
 			return;
 		}
 
@@ -170,8 +217,7 @@ package net.GPCracker.battle.views.components.panels
 
 		public function as_setPosition(x:Number, y:Number):void
 		{
-			this.x = x;
-			this.y = y;
+			this.setPosition(x, y);
 			return;
 		}
 
@@ -213,12 +259,11 @@ package net.GPCracker.battle.views.components.panels
 				}
 				if (config.position != undefined && config.position is Array && config.position.length == 2)
 				{
-					this.x = config.position[0];
-					this.y = config.position[1];
+					this.setPosition.apply(this, config.position);
 				}
 				if (config.size != undefined && config.size is Array && config.size.length == 2)
 				{
-					this.setSize(config.size[0], config.size[1]);
+					this.setSize.apply(this, config.size);
 				}
 			}
 			return;

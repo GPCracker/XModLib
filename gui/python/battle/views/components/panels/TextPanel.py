@@ -58,20 +58,27 @@ class TextPanel(TextPanelMeta):
 		super(TextPanel, self)._populate()
 		gui.shared.g_eventBus.addListener(gui.shared.events.GameEvent.SHOW_CURSOR, self._handleShowCursor, gui.shared.EVENT_BUS_SCOPE.GLOBAL)
 		gui.shared.g_eventBus.addListener(gui.shared.events.GameEvent.HIDE_CURSOR, self._handleHideCursor, gui.shared.EVENT_BUS_SCOPE.GLOBAL)
+		gui.shared.g_eventBus.addListener(gui.shared.events.GameEvent.CHANGE_APP_RESOLUTION, self._handleChangeAppResolution, gui.shared.EVENT_BUS_SCOPE.GLOBAL)
 		return
 
 	def _dispose(self):
 		gui.shared.g_eventBus.removeListener(gui.shared.events.GameEvent.SHOW_CURSOR, self._handleShowCursor, gui.shared.EVENT_BUS_SCOPE.GLOBAL)
 		gui.shared.g_eventBus.removeListener(gui.shared.events.GameEvent.HIDE_CURSOR, self._handleHideCursor, gui.shared.EVENT_BUS_SCOPE.GLOBAL)
+		gui.shared.g_eventBus.removeListener(gui.shared.events.GameEvent.CHANGE_APP_RESOLUTION, self._handleChangeAppResolution, gui.shared.EVENT_BUS_SCOPE.GLOBAL)
 		super(TextPanel, self)._dispose()
 		return
 
-	def _handleShowCursor(self, _):
+	def _handleShowCursor(self, event):
 		self.as_toggleCursorS(True)
 		return
 
-	def _handleHideCursor(self, _):
+	def _handleHideCursor(self, event):
 		self.as_toggleCursorS(False)
+		return
+
+	def _handleChangeAppResolution(self, event):
+		ctx = event.ctx
+		self.as_changeAppResolutionS(ctx['width'], ctx['height'])
 		return
 
 	def updateText(self, text):
