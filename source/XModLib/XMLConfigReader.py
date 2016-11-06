@@ -196,17 +196,28 @@ class XMLReaderCollection(dict):
 		('Dict', DictXMLReaderMeta.construct('DictXMLReader')),
 	)
 
+	XML_GOOD = 'good'
+	XML_MISSING = 'missing'
+	XML_CORRUPTED = 'corrupted'
+
 	@classmethod
-	def open_section(sclass, xml_path, skip_test=False):
-		if not skip_test and not sclass._test_xml_path(xml_path):
-			raise RuntimeError('ResMgr path \'{}\' is invalid, file is missing or bad.'.format(xml_path))
+	def open_section(sclass, xml_path, skip_missing=True):
+		status, breakpoint = sclass._test_xml_path(xml_path)
+		if status == sclass.XML_CORRUPTED:
+			raise RuntimeError('ResMgr path \'{}\' is based on corrupted data file \'{}\'.'.format(xml_path, breakpoint))
+		elif status == sclass.XML_MISSING and not skip_missing:
+			raise RuntimeError('ResMgr path \'{}\' is based on missing data file. Breakpoint at \'{}\'.'.format(xml_path, breakpoint))
 		return ResMgr.openSection(xml_path)
 
 	@classmethod
 	def _test_xml_path(sclass, xml_path):
 		if ResMgr.isFile(xml_path):
-			return ResMgr.openSection(xml_path) is not None
-		return not ResMgr.isDir(xml_path) and sclass._test_xml_path(os.path.normpath(os.path.join(xml_path, '../')).replace(os.sep, '/'))
+			if ResMgr.openSection(xml_path) is None:
+				return sclass.XML_CORRUPTED, xml_path
+			return sclass.XML_GOOD, xml_path
+		if ResMgr.isDir(xml_path):
+			return sclass.XML_MISSING, xml_path
+		return sclass._test_xml_path(os.path.normpath(os.path.join(xml_path, '../')).replace(os.sep, '/'))
 
 	@classmethod
 	def _override_section(sclass, xml_section):
