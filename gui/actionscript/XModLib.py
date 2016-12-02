@@ -24,8 +24,8 @@ if __name__ == '__main__':
 			'java', '-Xmx384m', '-Dsun.io.useCanonCaches=false',
 			'-jar', '$FLEX_HOME/lib/compc.jar', '+flexlib=$FLEX_HOME/frameworks',
 			'-output', 'bin/XModLib.swc',
-			'-include-libraries', 'swc/wg_battle.swc',
-			'-include-sources', 'src'
+			'-external-library-path+=swc/wg_battle.swc',
+			'-include-sources+=src'
 		])
 		# Starting flex.
 		return_code = subprocess.call(flex_args)
