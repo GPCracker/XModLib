@@ -65,6 +65,16 @@ class XMLReaderMeta(object):
 	def __del__(self):
 		return
 
+class InternalXMLReaderMeta(XMLReaderMeta):
+	__slots__ = ()
+
+	@classmethod
+	def construct(sclass, class_name):
+		return sclass._construct_class(class_name)
+
+	def _read_section(self, xml_section, def_section):
+		return def_section
+
 class ResMgrXMLReaderMeta(XMLReaderMeta):
 	__slots__ = ()
 
@@ -194,6 +204,7 @@ class XMLReaderCollection(dict):
 	)
 	READER_TYPES = (
 		('Dict', DictXMLReaderMeta.construct('DictXMLReader')),
+		('Internal', InternalXMLReaderMeta.construct('InternalXMLReader'))
 	)
 
 	XML_GOOD = 'good'
