@@ -179,7 +179,7 @@ package net.GPCracker.battle.views.components.panels
 			return;
 		}
 
-		public function as_changeAppResolution(width, height):void
+		public function as_changeAppResolution(width:Number, height:Number):void
 		{
 			this.updateStage(width, height);
 			return;
