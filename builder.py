@@ -63,6 +63,25 @@ def compile_gettext_string(src_bin_data):
 		raise RuntimeError('An error occured while compiling localization file.')
 	return dst_bin_data
 
+def compile_atlas(dst_atlas, src_wildcards, src_basepath, ext_args=None):
+	dst_basepath, dst_basename = os.path.split(dst_atlas)
+	args = ['python', 'tools/atlases/atlscnv.py', 'assemble']
+	args += ['--subtexture-path', src_basepath, '--atlas-path', dst_basepath]
+	args += ext_args if ext_args is not None else []
+	args += [dst_basename, ] + src_wildcards
+	args = map(os.path.expandvars, args)
+	atlscnv_process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+	stdout_data, stderr_data = atlscnv_process.communicate()
+	if atlscnv_process.poll():
+		# Output assembler return.
+		print '[atlscnv stdout] >>>'
+		print stdout_data
+		print '--------------------'
+		print stderr_data
+		print '<<< [atlscnv stderr]'
+		raise RuntimeError('An error occured while assembling atlas.')
+	return
+
 def compile_zipfile_string(src_data_blocks, src_bin_comment=''):
 	with io.BytesIO() as dst_bin_buffer:
 		with zipfile.ZipFile(dst_bin_buffer, 'w', zipfile.ZIP_DEFLATED) as dst_zip_buffer:
@@ -344,6 +363,23 @@ if __name__ == '__main__':
 				# Appending archive block.
 				archive_blocks.append([zip_filename, dst_bin_data])
 			return archive_blocks
+		## Atlas build commands.
+		# Atlas build command.
+		def g_atlasBuildEntry(src_entry, level=0):
+			# Parsing atlas entry.
+			dst_atlas, src_wildcards, src_basepath, ext_args, atl_entries = src_entry
+			# Formatting macros.
+			dst_atlas = norm_path(format_macros(dst_atlas, g_allMacros))
+			src_wildcards = [norm_path(format_macros(src_wildcard, g_allMacros)) for src_wildcard in src_wildcards]
+			src_basepath = norm_path(format_macros(src_basepath, g_allMacros))
+			ext_args = [format_macros(ext_arg, g_allMacros) for ext_arg in ext_args]
+			# Printing status.
+			indent = ' ' * level
+			print indent + 'Building atlas: {}.'.format(dst_atlas)
+			# Assembling atlas.
+			compile_atlas(dst_atlas, src_wildcards, src_basepath, ext_args)
+			# Returning archive blocks.
+			return list(itertools.chain.from_iterable(g_resourceBuildEntry(atl_entry, level) for atl_entry in atl_entries))
 		## Creating release archive data blocks storage.
 		g_releaseBlocks = list()
 		## Building ActionScript.
@@ -387,6 +423,14 @@ if __name__ == '__main__':
 		# Compiling and adding localization.
 		g_releaseBlocks.extend(itertools.chain.from_iterable(
 			[g_localizationBuildEntry(src_entry, level=1) for src_entry in g_config["localizations"]]
+		))
+		## Building Atlas.
+		print '>>> Building Atlas... <<<'
+		# Printing status.
+		print 'Atlas build started.'
+		# Assembling and adding atlases.
+		g_releaseBlocks.extend(itertools.chain.from_iterable(
+			[g_atlasBuildEntry(src_entry, level=1) for src_entry in g_config["atlases"]]
 		))
 		## Loading release archive filename.
 		g_releaseArchive = format_macros(g_config["releaseArchive"], g_allMacros)
