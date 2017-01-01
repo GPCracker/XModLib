@@ -3,7 +3,10 @@
 # *************************
 # Python
 # *************************
+import operator
 import functools
+import itertools
+import collections
 
 # *************************
 # BigWorld
@@ -21,112 +24,94 @@ import Keys
 # *************************
 # Nothing
 
-class ShortcutHandle(object):
-	def __init__(self, switch, pushed):
-		self.switch = switch
-		self.pushed = pushed
-		return
+MODIFIER_KEYS = frozenset({
+	Keys.KEY_LSHIFT,
+	Keys.KEY_RSHIFT,
+	Keys.KEY_LCONTROL,
+	Keys.KEY_RCONTROL,
+	Keys.KEY_LALT,
+	Keys.KEY_RALT
+})
+MODIFIER_FLAGS = frozenset({
+	Keys.MODIFIER_SHIFT,
+	Keys.MODIFIER_CTRL,
+	Keys.MODIFIER_ALT
+})
+MODIFIER_KEY2FLAG = {
+	Keys.KEY_LSHIFT: Keys.MODIFIER_SHIFT,
+	Keys.KEY_RSHIFT: Keys.MODIFIER_SHIFT,
+	Keys.KEY_LCONTROL: Keys.MODIFIER_CTRL,
+	Keys.KEY_RCONTROL: Keys.MODIFIER_CTRL,
+	Keys.KEY_LALT: Keys.MODIFIER_ALT,
+	Keys.KEY_RALT: Keys.MODIFIER_ALT
+}
+MODIFIER_FLAG2KEY = {
+	Keys.MODIFIER_SHIFT: (Keys.KEY_LSHIFT, Keys.KEY_RSHIFT),
+	Keys.MODIFIER_CTRL: (Keys.KEY_LCONTROL, Keys.KEY_RCONTROL),
+	Keys.MODIFIER_ALT: (Keys.KEY_LALT, Keys.KEY_RALT)
+}
+MODIFIER_PAIRS = {
+	Keys.KEY_LSHIFT: Keys.KEY_RSHIFT,
+	Keys.KEY_RSHIFT: Keys.KEY_LSHIFT,
+	Keys.KEY_LCONTROL: Keys.KEY_RCONTROL,
+	Keys.KEY_RCONTROL: Keys.KEY_LCONTROL,
+	Keys.KEY_LALT: Keys.KEY_RALT,
+	Keys.KEY_RALT: Keys.KEY_LALT,
+}
+
+class KeyboardEvent(collections.namedtuple('KeyboardEvent', ('key', 'modifiers', 'down', 'repeat'))):
+	__slots__ = ()
+
+	@staticmethod
+	def _parse_event(event):
+		cmask = ~(MODIFIER_KEY2FLAG[event.key] if event.key in MODIFIER_KEYS and not BigWorld.isKeyDown(MODIFIER_PAIRS[event.key]) else 0x0)
+		return event.key, event.modifiers & cmask, event.isKeyDown(), event.isRepeatedEvent()
+
+	def __new__(sclass, event):
+		return super(KeyboardEvent, sclass).__new__(sclass, *sclass._parse_event(event))
+
+class ShortcutHandle(collections.namedtuple('ShortcutHandle', ('switch', 'pushed'))):
+	__slots__ = ()
+
+	def __new__(sclass, switch, pushed):
+		return super(ShortcutHandle, sclass).__new__(sclass, switch, pushed)
 
 	def __call__(self, value):
 		return bool(value) != bool(self.pushed) if self.switch else bool(self.pushed)
 
-class Shortcut(object):
-	'''
-	Parsing keyboard events and hot-key sequences.
-	Key modifiers flags: Shift = 1; Ctrl = 2; Alt = 4;
-	'''
-	MOD_KEYS = frozenset({
-		Keys.KEY_LSHIFT,
-		Keys.KEY_RSHIFT,
-		Keys.KEY_LCONTROL,
-		Keys.KEY_RCONTROL,
-		Keys.KEY_LALT,
-		Keys.KEY_RALT
-	})
-	MOD_FLAGS = frozenset({
-		Keys.MODIFIER_SHIFT,
-		Keys.MODIFIER_CTRL,
-		Keys.MODIFIER_ALT
-	})
-	MOD_KEY2FLAG = {
-		Keys.KEY_LSHIFT: Keys.MODIFIER_SHIFT,
-		Keys.KEY_RSHIFT: Keys.MODIFIER_SHIFT,
-		Keys.KEY_LCONTROL: Keys.MODIFIER_CTRL,
-		Keys.KEY_RCONTROL: Keys.MODIFIER_CTRL,
-		Keys.KEY_LALT: Keys.MODIFIER_ALT,
-		Keys.KEY_RALT: Keys.MODIFIER_ALT
-	}
-	MOD_FLAG2KEY = {
-		Keys.MODIFIER_SHIFT: (Keys.KEY_LSHIFT, Keys.KEY_RSHIFT),
-		Keys.MODIFIER_CTRL: (Keys.KEY_LCONTROL, Keys.KEY_RCONTROL),
-		Keys.MODIFIER_ALT: (Keys.KEY_LALT, Keys.KEY_RALT)
-	}
-	MOD_PAIRS = {
-		Keys.KEY_LSHIFT: Keys.KEY_RSHIFT,
-		Keys.KEY_RSHIFT: Keys.KEY_LSHIFT,
-		Keys.KEY_LCONTROL: Keys.KEY_RCONTROL,
-		Keys.KEY_RCONTROL: Keys.KEY_LCONTROL,
-		Keys.KEY_LALT: Keys.KEY_RALT,
-		Keys.KEY_RALT: Keys.KEY_LALT,
-	}
+class Shortcut(collections.namedtuple('Shortcut', ('key', 'modifiers', 'switch', 'invert', 'repeat'))):
+	__slots__ = ()
+
+	sequence = property(lambda self: self._build_sequence(self.key, self.modifiers))
 
 	@staticmethod
-	def keyToString(key):
-		key = BigWorld.keyToString(key)
-		if not key:
-			raise LookupError('Key could not be recognized.')
-		return 'KEY_' + key
+	def _build_sequence(key, modifiers):
+		def _get_alias(key):
+			alias = 'KEY_' + BigWorld.keyToString(key)
+			if getattr(Keys, alias, None) is None:
+				raise LookupError('Key could not be recognized.')
+			return alias
+		return '+'.join(itertools.imap(_get_alias, itertools.chain(
+			(MODIFIER_FLAG2KEY[flag][0] for flag in MODIFIER_FLAGS if modifiers & flag), (key, )
+		)))
 
-	@classmethod
-	def parseEvent(sclass, event):
-		'''
-		parseEvent(event) -> key, modifiers, isDown, isRepeat
-		'''
-		return (
-			event.key,
-			event.modifiers & ~(sclass.MOD_KEY2FLAG[event.key] if event.key in sclass.MOD_KEYS and not BigWorld.isKeyDown(sclass.MOD_PAIRS[event.key]) else 0x0),
-			event.isKeyDown(),
-			event.isRepeatedEvent()
-		)
-
-	@classmethod
-	def parseSequence(sclass, sequence):
-		'''
-		parseSequence(sequence) -> key, modifiers
-		'''
-		sequence = map(lambda key: getattr(Keys, key, None), sequence.split('+'))
+	@staticmethod
+	def _parse_sequence(sequence):
+		sequence = map(lambda alias: getattr(Keys, alias, None), sequence.split('+'))
 		if None in sequence:
 			raise LookupError('One or more keys could not be recognized.')
 		key, modifiers = sequence.pop(), set(sequence)
-		if modifiers - sclass.MOD_KEYS:
+		if modifiers.difference(MODIFIER_KEYS):
 			raise LookupError('Only Shift, Ctrl and Alt could be modifiers.')
 		return (
 			key if key is not Keys.KEY_NONE else -1,
-			sum(set(map(lambda modifier: sclass.MOD_KEY2FLAG[modifier], modifiers)))
+			functools.reduce(operator.or_, itertools.imap(functools.partial(operator.getitem, MODIFIER_KEY2FLAG), modifiers), 0x0)
 		)
 
-	@classmethod
-	def buildSequence(sclass, key, modifiers):
-		'''
-		buildSequence(key, modifiers) -> sequence
-		'''
-		return '+'.join(map(sclass.keyToString, [sclass.MOD_FLAG2KEY[flag][0] for flag in sclass.MOD_FLAGS if modifiers & flag] + [key]))
+	def __new__(sclass, sequence, switch=True, invert=False, repeat=False):
+		return super(Shortcut, sclass).__new__(sclass, *sclass._parse_sequence(sequence), switch=switch, invert=invert, repeat=repeat)
 
-	@classmethod
-	def fromSequence(sclass, sequence, switch=True, invert=False, repeat=False):
-		key, modifiers = sclass.parseSequence(sequence)
-		return sclass(key, modifiers, switch=switch, invert=invert, repeat=repeat)
-
-	def __init__(self, key=-1, modifiers=0, switch=True, invert=False, repeat=False):
-		self.key = key
-		self.modifiers = modifiers
-		self.switch = switch
-		self.invert = invert
-		self.repeat = repeat
-		return
-
-	def __call__(self, event):
-		key, modifiers, isDown, isRepeat = self.parseEvent(event)
-		if key == self.key and modifiers == self.modifiers and (not isRepeat or self.repeat):
-			return ShortcutHandle(self.switch, bool(isDown) != bool(self.invert))
+	def __call__(self, kbevent):
+		if kbevent.key == self.key and kbevent.modifiers == self.modifiers and (not kbevent.repeat or self.repeat):
+			return ShortcutHandle(self.switch, bool(kbevent.down) != bool(self.invert))
 		return None
