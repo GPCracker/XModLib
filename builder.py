@@ -54,7 +54,7 @@ def compile_gettext_string(src_bin_data):
 	if os.name == 'posix':
 		msgfmt = 'msgfmt'
 	elif os.name == 'nt':
-		msgfmt = 'tools/gettext/bin/msgfmt.exe'
+		msgfmt = 'tools/gettext/msgfmt.exe'
 	else:
 		raise RuntimeError('Current operation system is not supported.')
 	gettext_process = subprocess.Popen([msgfmt, '-', '-o', '-'], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
