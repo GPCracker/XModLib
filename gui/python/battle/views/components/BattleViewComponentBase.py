@@ -16,14 +16,14 @@
 import gui.Scaleform.framework
 import gui.Scaleform.framework.ViewTypes
 import gui.Scaleform.framework.ScopeTemplates
-import gui.Scaleform.daapi.view.meta.BattleDisplayableMeta
+import gui.Scaleform.framework.entities.BaseDAAPIComponent
 
 # *************************
 # X-Mod Library
 # *************************
 # Nothing
 
-class BattleViewComponentBase(gui.Scaleform.daapi.view.meta.BattleDisplayableMeta.BattleDisplayableMeta):
+class BattleViewComponentBase(gui.Scaleform.framework.entities.BaseDAAPIComponent.BaseDAAPIComponent):
 	@classmethod
 	def getSettings(sclass, alias):
 		return gui.Scaleform.framework.ViewSettings(alias, sclass, None, gui.Scaleform.framework.ViewTypes.COMPONENT, None, gui.Scaleform.framework.ScopeTemplates.DEFAULT_SCOPE)

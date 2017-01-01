@@ -1,9 +1,9 @@
 package net.GPCracker.battle.views.components
 {
 	import flash.events.IEventDispatcher;
-	import net.wg.gui.battle.components.BattleDisplayable;
+	import net.wg.infrastructure.base.BaseBattleDAAPIComponent;
 
-	public class BattleViewComponentBase extends BattleDisplayable implements IEventDispatcher
+	public class BattleViewComponentBase extends BaseBattleDAAPIComponent implements IEventDispatcher
 	{
 		public function BattleViewComponentBase()
 		{

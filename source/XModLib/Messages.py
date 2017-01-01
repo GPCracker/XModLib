@@ -81,7 +81,7 @@ class LobbyMessenger(object):
 
 	@staticmethod
 	def pushClientMessage(message, key, *args, **kwargs):
-		gui.SystemMessages.g_instance.proto.serviceChannel.pushClientMessage(message, key, *args, **kwargs)
+		gui.SystemMessages._getSystemMessages().proto.serviceChannel.pushClientMessage(message, key, *args, **kwargs)
 		return
 
 	@staticmethod
