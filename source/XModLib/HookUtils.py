@@ -7,6 +7,11 @@ import types
 import functools
 
 # *************************
+# Python backports
+# *************************
+import backports.enum
+
+# *************************
 # BigWorld
 # *************************
 # Nothing
@@ -19,44 +24,56 @@ import functools
 # *************************
 # X-Mod Library
 # *************************
-from .Helpers import ReleaseEvent as HookEvent
+from .Helpers import Event as HookEvent
+
+class HookInvoke(backports.enum.Enum):
+	MASTER = 'master'
+	PRIMARY = 'primary'
+	SECONDARY = 'secondary'
+	DEFAULT = SECONDARY
+
+class PropertyAction(backports.enum.Enum):
+	GET = 'fget'
+	SET = 'fset'
+	DEL = 'fdel'
 
 class HookFunction(object):
-	PROPERTY_ACTION_GET = 'fget'
-	PROPERTY_ACTION_SET = 'fset'
-	PROPERTY_ACTION_DEL = 'fdel'
-	CALL_ORIGIN_BEFORE_HOOK = 0x0
-	CALL_HOOK_BEFORE_ORIGIN = 0x1
-	CALL_ORIGIN_INSIDE_HOOK = 0x2
+	__slots__ = ('__weakref__', '__name__', '_hook', '_origin', '_invoke', 'active')
 
-	def __init__(self, origin, hook, calltype=CALL_ORIGIN_BEFORE_HOOK, active=True):
+	def __init__(self, hook, origin, invoke=HookInvoke.DEFAULT, active=True):
 		if not isinstance(hook, (types.FunctionType, types.LambdaType)):
-			raise TypeError('Hook must be function or lambda')
+			raise TypeError('Hook must be function or lambda.')
 		self.__name__ = hook.__name__
-		self.origin = origin
-		self.hook = hook
-		self.calltype = calltype
+		self._hook = hook
+		self._origin = origin
+		self._invoke = invoke
 		self.active = active
 		return
 
+	hook = property(lambda self: self._hook)
+	origin = property(lambda self: self._origin)
+	invoke = property(lambda self: self._invoke)
+
 	def __call__(self, *args, **kwargs):
-		if self.active and self.calltype == self.CALL_ORIGIN_BEFORE_HOOK:
-			result = self.origin(*args, **kwargs)
-			self.hook(*args, **kwargs)
-		elif self.active and self.calltype == self.CALL_HOOK_BEFORE_ORIGIN:
-			self.hook(*args, **kwargs)
-			result = self.origin(*args, **kwargs)
-		elif self.active and self.calltype == self.CALL_ORIGIN_INSIDE_HOOK:
-			result = self.hook(self.origin, *args, **kwargs)
-		else:
-			result = self.origin(*args, **kwargs)
+		if not isinstance(self._invoke, HookInvoke):
+			raise ValueError('Incorrect hook invoke type.')
+		if not self.active:
+			result = self._origin(*args, **kwargs)
+		elif self._invoke == HookInvoke.MASTER:
+			result = self._hook(self._origin, *args, **kwargs)
+		elif self._invoke == HookInvoke.PRIMARY:
+			self._hook(*args, **kwargs)
+			result = self._origin(*args, **kwargs)
+		elif self._invoke == HookInvoke.SECONDARY:
+			result = self._origin(*args, **kwargs)
+			self._hook(*args, **kwargs)
 		return result
 
 	def __get__(self, instance, type=None):
 		return types.MethodType(self, instance, type)
 
 	@classmethod
-	def makeMethodAdd(sclass, target, method, hook):
+	def doMethodAdd(sclass, target, method, hook):
 		if isinstance(target, (types.TypeType, types.ClassType)):
 			setattr(target, method, hook)
 		else:
@@ -64,7 +81,7 @@ class HookFunction(object):
 		return hook
 
 	@classmethod
-	def makeStaticMethodAdd(sclass, target, method, hook):
+	def doStaticMethodAdd(sclass, target, method, hook):
 		if isinstance(target, (types.TypeType, types.ClassType)):
 			setattr(target, method, staticmethod(hook))
 		else:
@@ -72,7 +89,7 @@ class HookFunction(object):
 		return hook
 
 	@staticmethod
-	def makeClassMethodAdd(sclass, target, method, hook):
+	def doClassMethodAdd(sclass, target, method, hook):
 		if isinstance(target, (types.TypeType, types.ClassType)):
 			setattr(target, method, classmethod(hook))
 		else:
@@ -80,9 +97,9 @@ class HookFunction(object):
 		return hook
 
 	@classmethod
-	def makeMethodHook(sclass, target, method, hook, calltype=CALL_ORIGIN_BEFORE_HOOK, active=True):
+	def doMethodHook(sclass, target, method, hook, invoke=HookInvoke.DEFAULT, active=True):
 		origin = getattr(target, method).__func__
-		override = sclass(origin, hook, calltype, active)
+		override = sclass(hook, origin, invoke, active)
 		if isinstance(target, (types.TypeType, types.ClassType)):
 			setattr(target, method, override)
 		else:
@@ -90,9 +107,9 @@ class HookFunction(object):
 		return hook
 
 	@classmethod
-	def makeStaticMethodHook(sclass, target, method, hook, calltype=CALL_ORIGIN_BEFORE_HOOK, active=True):
+	def doStaticMethodHook(sclass, target, method, hook, invoke=HookInvoke.DEFAULT, active=True):
 		origin = getattr(target, method)
-		override = sclass(origin, hook, calltype, active)
+		override = sclass(hook, origin, invoke, active)
 		if isinstance(target, (types.TypeType, types.ClassType)):
 			setattr(target, method, staticmethod(override))
 		else:
@@ -100,9 +117,9 @@ class HookFunction(object):
 		return hook
 
 	@classmethod
-	def makeClassMethodHook(sclass, target, method, hook, calltype=CALL_ORIGIN_BEFORE_HOOK, active=True):
+	def doClassMethodHook(sclass, target, method, hook, invoke=HookInvoke.DEFAULT, active=True):
 		origin = getattr(target, method).__func__
-		override = sclass(origin, hook, calltype, active)
+		override = sclass(hook, origin, invoke, active)
 		if isinstance(target, (types.TypeType, types.ClassType)):
 			setattr(target, method, classmethod(override))
 		else:
@@ -110,7 +127,7 @@ class HookFunction(object):
 		return hook
 
 	@classmethod
-	def makePropertyHook(sclass, target, method, varname, hook, action=PROPERTY_ACTION_SET, calltype=CALL_ORIGIN_BEFORE_HOOK, active=True):
+	def doPropertyHook(sclass, target, method, action, varname, hook, invoke=HookInvoke.DEFAULT, active=True):
 		if not isinstance(target, (types.TypeType, types.ClassType)):
 			raise TypeError('Property hook may be used only on classes, not on instances.')
 		if hasattr(target, method):
@@ -124,105 +141,105 @@ class HookFunction(object):
 				functools.partial(lambda instance, varname: delattr(instance, varname), varname=varname)
 			)
 			setattr(target, method, iproperty)
-		if action not in (sclass.PROPERTY_ACTION_GET, sclass.PROPERTY_ACTION_SET, sclass.PROPERTY_ACTION_DEL):
-			raise ValueError('Incorrect action value.')
+		if not isinstance(action, PropertyAction):
+			raise ValueError('Incorrect property action.')
 		kwargs = {
 			'fget': iproperty.fget,
 			'fset': iproperty.fset,
 			'fdel': iproperty.fdel,
 			'doc': iproperty.__doc__
 		}
-		kwargs[action] = sclass(kwargs[action], hook, calltype, active)
+		kwargs[action.value] = sclass(hook, kwargs[action.value], invoke, active)
 		setattr(target, method, property(**kwargs))
 		return hook
 
 	@classmethod
-	def makeMethodAddOnEvent(sclass, event, target, method, hook):
-		event += functools.partial(sclass.makeMethodAdd, target, method, hook)
+	def doMethodAddExt(sclass, event, target, method, hook):
+		event += functools.partial(sclass.doMethodAdd, target, method, hook)
 		return hook
 
 	@classmethod
-	def makeStaticMethodAddOnEvent(sclass, event, target, method, hook):
-		event += functools.partial(sclass.makeStaticMethodAdd, target, method, hook)
+	def doStaticMethodAddExt(sclass, event, target, method, hook):
+		event += functools.partial(sclass.doStaticMethodAdd, target, method, hook)
 		return hook
 
 	@staticmethod
-	def makeClassMethodAddOnEvent(sclass, event, target, method, hook):
-		event += functools.partial(sclass.makeClassMethodAdd, target, method, hook)
+	def doClassMethodAddExt(sclass, event, target, method, hook):
+		event += functools.partial(sclass.doClassMethodAdd, target, method, hook)
 		return hook
 
 	@classmethod
-	def makeMethodHookOnEvent(sclass, event, target, method, hook, calltype=CALL_ORIGIN_BEFORE_HOOK, active=True):
-		event += functools.partial(sclass.makeMethodHook, target, method, hook, calltype=calltype, active=active)
+	def doMethodHookExt(sclass, event, target, method, hook, invoke=HookInvoke.DEFAULT, active=True):
+		event += functools.partial(sclass.doMethodHook, target, method, hook, invoke=invoke, active=active)
 		return hook
 
 	@classmethod
-	def makeStaticMethodHookOnEvent(sclass, event, target, method, hook, calltype=CALL_ORIGIN_BEFORE_HOOK, active=True):
-		event += functools.partial(sclass.makeStaticMethodHook, target, method, hook, calltype=calltype, active=active)
+	def doStaticMethodHookExt(sclass, event, target, method, hook, invoke=HookInvoke.DEFAULT, active=True):
+		event += functools.partial(sclass.doStaticMethodHook, target, method, hook, invoke=invoke, active=active)
 		return hook
 
 	@classmethod
-	def makeClassMethodHookOnEvent(sclass, event, target, method, hook, calltype=CALL_ORIGIN_BEFORE_HOOK, active=True):
-		event += functools.partial(sclass.makeClassMethodHook, target, method, hook, calltype=calltype, active=active)
+	def doClassMethodHookExt(sclass, event, target, method, hook, invoke=HookInvoke.DEFAULT, active=True):
+		event += functools.partial(sclass.doClassMethodHook, target, method, hook, invoke=invoke, active=active)
 		return hook
 
 	@classmethod
-	def makePropertyHookOnEvent(sclass, event, target, method, varname, hook, action=PROPERTY_ACTION_SET, calltype=CALL_ORIGIN_BEFORE_HOOK, active=True):
-		event += functools.partial(sclass.makePropertyHook, target, method, varname, hook, action=action, calltype=calltype, active=active)
+	def doPropertyHookExt(sclass, event, target, method, action, varname, hook, invoke=HookInvoke.DEFAULT, active=True):
+		event += functools.partial(sclass.doPropertyHook, target, method, action, varname, hook, invoke=invoke, active=active)
 		return hook
 
 	@classmethod
 	def methodAdd(sclass, target, method):
-		return functools.partial(sclass.makeMethodAdd, target, method)
+		return functools.partial(sclass.doMethodAdd, target, method)
 
 	@classmethod
 	def staticMethodAdd(sclass, target, method):
-		return functools.partial(sclass.makeStaticMethodAdd, target, method)
+		return functools.partial(sclass.doStaticMethodAdd, target, method)
 
 	@classmethod
 	def classMethodAdd(sclass, target, method):
-		return functools.partial(sclass.makeClassMethodAdd, target, method)
+		return functools.partial(sclass.doClassMethodAdd, target, method)
 
 	@classmethod
-	def methodHook(sclass, target, method, calltype=CALL_ORIGIN_BEFORE_HOOK, active=True):
-		return functools.partial(sclass.makeMethodHook, target, method, calltype=calltype, active=active)
+	def methodHook(sclass, target, method, invoke=HookInvoke.DEFAULT, active=True):
+		return functools.partial(sclass.doMethodHook, target, method, invoke=invoke, active=active)
 
 	@classmethod
-	def staticMethodHook(sclass, target, method, calltype=CALL_ORIGIN_BEFORE_HOOK, active=True):
-		return functools.partial(sclass.makeStaticMethodHook, target, method, calltype=calltype, active=active)
+	def staticMethodHook(sclass, target, method, invoke=HookInvoke.DEFAULT, active=True):
+		return functools.partial(sclass.doStaticMethodHook, target, method, invoke=invoke, active=active)
 
 	@classmethod
-	def classMethodHook(sclass, target, method, calltype=CALL_ORIGIN_BEFORE_HOOK, active=True):
-		return functools.partial(sclass.makeClassMethodHook, target, method, calltype=calltype, active=active)
+	def classMethodHook(sclass, target, method, invoke=HookInvoke.DEFAULT, active=True):
+		return functools.partial(sclass.doClassMethodHook, target, method, invoke=invoke, active=active)
 
 	@classmethod
-	def propertyHook(sclass, target, method, varname, action=PROPERTY_ACTION_SET, calltype=CALL_ORIGIN_BEFORE_HOOK, active=True):
-		return functools.partial(sclass.makePropertyHook, target, method, varname, action=action, calltype=calltype, active=active)
+	def propertyHook(sclass, target, method, action, varname, invoke=HookInvoke.DEFAULT, active=True):
+		return functools.partial(sclass.doPropertyHook, target, method, action, varname, invoke=invoke, active=active)
 
 	@classmethod
-	def methodAddOnEvent(sclass, event, target, method):
-		return functools.partial(sclass.makeMethodAddOnEvent, event, target, method)
+	def methodAddExt(sclass, event, target, method):
+		return functools.partial(sclass.doMethodAddExt, event, target, method)
 
 	@classmethod
-	def staticMethodAddOnEvent(sclass, event, target, method):
-		return functools.partial(sclass.makeStaticMethodAddOnEvent, event, target, method)
+	def staticMethodAddExt(sclass, event, target, method):
+		return functools.partial(sclass.doStaticMethodAddExt, event, target, method)
 
 	@classmethod
-	def classMethodAddOnEvent(sclass, event, target, method):
-		return functools.partial(sclass.makeClassMethodAddOnEvent, event, target, method)
+	def classMethodAddExt(sclass, event, target, method):
+		return functools.partial(sclass.doClassMethodAddExt, event, target, method)
 
 	@classmethod
-	def methodHookOnEvent(sclass, event, target, method, calltype=CALL_ORIGIN_BEFORE_HOOK, active=True):
-		return functools.partial(sclass.makeMethodHookOnEvent, event, target, method, calltype=calltype, active=active)
+	def methodHookExt(sclass, event, target, method, invoke=HookInvoke.DEFAULT, active=True):
+		return functools.partial(sclass.doMethodHookExt, event, target, method, invoke=invoke, active=active)
 
 	@classmethod
-	def staticMethodHookOnEvent(sclass, event, target, method, calltype=CALL_ORIGIN_BEFORE_HOOK, active=True):
-		return functools.partial(sclass.makeStaticMethodHookOnEvent, event, target, method, calltype=calltype, active=active)
+	def staticMethodHookExt(sclass, event, target, method, invoke=HookInvoke.DEFAULT, active=True):
+		return functools.partial(sclass.doStaticMethodHookExt, event, target, method, invoke=invoke, active=active)
 
 	@classmethod
-	def classMethodHookOnEvent(sclass, event, target, method, calltype=CALL_ORIGIN_BEFORE_HOOK, active=True):
-		return functools.partial(sclass.makeClassMethodHookOnEvent, event, target, method, calltype=calltype, active=active)
+	def classMethodHookExt(sclass, event, target, method, invoke=HookInvoke.DEFAULT, active=True):
+		return functools.partial(sclass.doClassMethodHookExt, event, target, method, invoke=invoke, active=active)
 
 	@classmethod
-	def propertyHookOnEvent(sclass, event, target, method, varname, action=PROPERTY_ACTION_SET, calltype=CALL_ORIGIN_BEFORE_HOOK, active=True):
-		return functools.partial(sclass.makePropertyHookOnEvent, event, target, method, varname, action=action, calltype=calltype, active=active)
+	def propertyHookExt(sclass, event, target, method, action, varname, invoke=HookInvoke.DEFAULT, active=True):
+		return functools.partial(sclass.doPropertyHookExt, event, target, method, action, varname, invoke=invoke, active=active)
