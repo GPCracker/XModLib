@@ -49,11 +49,13 @@ class Messenger(object):
 
 	@staticmethod
 	def showMessageOnPanel(msgType, msgKey, msgText, msgColor):
-		if gui.app_loader.g_appLoader.getDefBattleApp() is not None and msgType in ['Vehicle', 'VehicleError', 'Player']:
-			panel = gui.app_loader.g_appLoader.getDefBattleApp().containerManager.getContainer(gui.Scaleform.framework.ViewTypes.VIEW).getView().components['battle' + msgType + 'Messages']
-			methods = gui.Scaleform.daapi.view.battle.shared.messages.fading_messages._COLOR_TO_METHOD
-			if msgColor in methods:
-				getattr(panel, methods[msgColor])(msgKey, msgText)
+		battleApp = gui.app_loader.g_appLoader.getDefBattleApp()
+		if battleApp is not None and msgType in ['Vehicle', 'VehicleError', 'Player']:
+			battlePage = battleApp.containerManager.getContainer(gui.Scaleform.framework.ViewTypes.VIEW).getView()
+			messagePanel = battlePage.components['battle' + msgType + 'Messages']
+			messageMethods = gui.Scaleform.daapi.view.battle.shared.messages.fading_messages._COLOR_TO_METHOD
+			if msgColor in messageMethods:
+				getattr(messagePanel, messageMethods[msgColor])(msgKey, msgText)
 		return
 
 	@staticmethod
@@ -103,25 +105,21 @@ class SystemMessageFormatter(object):
 
 class SystemMessage(dict):
 	protected_keys = {'icon', 'defaultIcon', 'bgIcon'}
-
-	@property
-	def defaults(self):
-		return {
-			'message': '',
-			'type': 'lightGrey',
-			'timestamp': -1,
-			'icon': '',
-			'defaultIcon': '',
-			'bgIcon': '',
-			'filters': list(),
-			'savedData': None,
-			'buttonsLayout': list()
-		}
+	default_values = {
+		'message': '',
+		'type': 'lightGrey',
+		'timestamp': -1,
+		'icon': '',
+		'defaultIcon': '',
+		'bgIcon': '',
+		'filters': list(),
+		'savedData': None,
+		'buttonsLayout': list()
+	}
 
 	def __init__(self, *args, **kwargs):
 		super(SystemMessage, self).__init__(*args, **kwargs)
-		for key, value in self.defaults.items():
-			self.setdefault(key, value)
+		self.update((key, value) for key, value in self.default_values.iteritems() if key not in self)
 		return
 
 	def __setitem__(self, key, value):
@@ -130,21 +128,18 @@ class SystemMessage(dict):
 		return
 
 	def copy(self):
-		return SystemMessage(self)
+		return self.__class__(self)
 
 class SystemMessageButton(dict):
-	@property
-	def defaults(self):
-		return {
-			'action': '',
-			'label': '',
-			'type': 'submit'
-		}
+	default_values = {
+		'action': '',
+		'label': '',
+		'type': 'submit'
+	}
 
 	def __init__(self, *args, **kwargs):
 		super(SystemMessageButton, self).__init__(*args, **kwargs)
-		for key, value in self.defaults.items():
-			self.setdefault(key, value)
+		self.update((key, value) for key, value in self.default_values.iteritems() if key not in self)
 		return
 
 class SystemMessageActionHandler(object):
@@ -183,18 +178,15 @@ class SimpleDialogButtons(object):
 		return self.buttons
 
 class SimpleDialogButton(dict):
-	@property
-	def defaults(self):
-		return {
-			'id': '',
-			'label': '',
-			'focused': True
-		}
+	default_values = {
+		'id': '',
+		'label': '',
+		'focused': True
+	}
 
 	def __init__(self, *args, **kwargs):
 		super(SimpleDialogButton, self).__init__(*args, **kwargs)
-		for key, value in self.defaults.items():
-			self.setdefault(key, value)
+		self.update((key, value) for key, value in self.default_values.iteritems() if key not in self)
 		return
 
 class SimpleDialog(gui.Scaleform.daapi.view.dialogs.SimpleDialog.SimpleDialog):
