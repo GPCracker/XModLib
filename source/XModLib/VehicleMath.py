@@ -45,7 +45,7 @@ class VehicleMath(object):
 		)
 
 	@staticmethod
-	def getShotAngles(vehicleTypeDescriptor, vehicleMP, targetPosition, adjust = True):
+	def getShotAngles(vehicleTypeDescriptor, vehicleMP, targetPosition, adjust=True):
 		hullPosition = vehicleTypeDescriptor.chassis['hullPosition']
 		turretPosition = vehicleTypeDescriptor.hull['turretPositions'][0]
 		gunPosition = vehicleTypeDescriptor.turret['gunPosition']

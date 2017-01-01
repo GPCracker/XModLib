@@ -44,7 +44,7 @@ class BallisticsMath(object):
 		return staticDispersionAngle, aimingStartTime, aimingStartFactor, dispersionFactor, expAimingTime
 
 	@staticmethod
-	def getAimingFactor(aimingStartTime, aimingStartFactor, dispersionFactor, expAimingTime, aimingFactorThreshold = 1.05):
+	def getAimingFactor(aimingStartTime, aimingStartFactor, dispersionFactor, expAimingTime, aimingFactorThreshold=1.05):
 		#Every <expAimingTime> seconds dispersion decreases EXP times.
 		deltaTime = aimingStartTime - BigWorld.time()
 		deltaFactor = aimingStartFactor / dispersionFactor

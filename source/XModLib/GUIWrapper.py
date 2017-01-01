@@ -22,7 +22,7 @@ import GUI
 
 class GUIWrapper(object):
 	@classmethod
-	def createGUI(sclass, className, settings, useWrapper = True):
+	def createGUI(sclass, className, settings, useWrapper=True):
 		gui = getattr(GUI, className)('')
 		sclass.applySettings(gui, settings)
 		return sclass(gui) if useWrapper else gui

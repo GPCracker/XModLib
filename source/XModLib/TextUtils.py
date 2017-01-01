@@ -23,6 +23,8 @@ from .ResMgrUtils import ResMgrUtils
 from .XMLConfigReader import XMLConfigReader, ListXMLReaderMeta
 
 class MacrosFormatter(object):
+	__slots__ = ('__weakref__', 'header', 'trailer')
+
 	HEADER = r'\{\{'
 	TRAILER = r'\}\}'
 
@@ -41,12 +43,14 @@ class MacrosFormatter(object):
 		return regex.sub(replacement, string)
 
 	def __repr__(self):
-		return 'MacrosFormatter(header={!r}, trailer={!r})'.format(self.header, self.trailer)
+		return '{}(header={!r}, trailer={!r})'.format(self.__class__.__name__, self.header, self.trailer)
 
 	def __del__(self):
 		return
 
 class UmlautReplace(tuple):
+	__slots__ = ()
+
 	def __new__(sclass, iterable):
 		result = super(UmlautReplace, sclass).__new__(sclass, iterable)
 		if len(result) != 2:
@@ -57,9 +61,11 @@ class UmlautReplace(tuple):
 		return string.replace(*self)
 
 	def __repr__(self):
-		return 'UmlautReplace({})'.format(super(UmlautReplace, self).__repr__())
+		return '{}({})'.format(self.__class__.__name__, super(UmlautReplace, self).__repr__())
 
 class UmlautDecoder(list):
+	__slots__ = ()
+
 	@classmethod
 	def from_xml(sclass, xml):
 		xml_config_reader = XMLConfigReader((
@@ -82,9 +88,11 @@ class UmlautDecoder(list):
 		return string
 
 	def __repr__(self):
-		return 'UmlautDecoder({})'.format(super(UmlautDecoder, self).__repr__())
+		return '{}({})'.format(self.__class__.__name__, super(UmlautDecoder, self).__repr__())
 
 class TranslatorsCache(dict):
+	__slots__ = ()
+
 	@staticmethod
 	def _get_translator(domain):
 		path = ResMgrUtils.basepath(ResMgrUtils.join_path('text/LC_MESSAGES', domain + '.mo'))
@@ -97,9 +105,11 @@ class TranslatorsCache(dict):
 		return self[domain].gettext(message)
 
 	def __repr__(self):
-		return 'TranslatorsCache({})'.format(super(TranslatorsCache, self).__repr__())
+		return '{}({})'.format(self.__class__.__name__, super(TranslatorsCache, self).__repr__())
 
 class TranslatorFormatter(object):
+	__slots__ = ('__weakref__', 'cache', 'header', 'trailer', 'delimiter')
+
 	HEADER = r'\#'
 	TRAILER = r'\;'
 	DELIMITER = r'\:'
@@ -120,7 +130,7 @@ class TranslatorFormatter(object):
 		return regex.sub(replacement, string)
 
 	def __repr__(self):
-		return 'TranslatorFormatter(header={!r}, trailer={!r}, delimiter={!r})'.format(self.header, self.trailer, self.delimiter)
+		return '{}(header={!r}, trailer={!r}, delimiter={!r})'.format(self.__class__.__name__, self.header, self.trailer, self.delimiter)
 
 	def __del__(self):
 		return

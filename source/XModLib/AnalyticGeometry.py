@@ -22,6 +22,8 @@ import Math
 from .MathUtils import MathUtils
 
 class Plane(object):
+	__slots__ = ('__weakref__', 'point', 'normal')
+
 	@classmethod
 	def getXYPlane(sclass):
 		return sclass(Math.Vector3(0.0, 0.0, 0.0), Math.Vector3(0.0, 0.0, 1.0))
@@ -139,12 +141,14 @@ class Plane(object):
 		return None
 
 	def __repr__(self):
-		return 'Plane(point={!r}, normal={!r})'.format(self.point, self.normal)
+		return '{}(point={!r}, normal={!r})'.format(self.__class__.__name__, self.point, self.normal)
 
 	def __del__(self):
 		return
 
 class BaseBoundingBox(object):
+	__slots__ = ('__weakref__', '_point0', '_point1')
+
 	def __init__(self, point0, point1):
 		self._point0 = Math.Vector3(min([point0.x, point1.x]), min([point0.y, point1.y]), min([point0.z, point1.z]))
 		self._point1 = Math.Vector3(max([point0.x, point1.x]), max([point0.y, point1.y]), max([point0.z, point1.z]))
@@ -224,12 +228,14 @@ class BaseBoundingBox(object):
 		return self._intersectSegment(self._point0 + (self._point1 - self._point0).scale(0.5), point) or point
 
 	def __repr__(self):
-		return 'BaseBoundingBox(point0={!r}, point1={!r})'.format(self._point0, self._point1)
+		return '{}(point0={!r}, point1={!r})'.format(self.__class__.__name__, self._point0, self._point1)
 
 	def __del__(self):
 		return
 
 class AxisAlignedBoundingBox(BaseBoundingBox):
+	__slots__ = ()
+
 	@classmethod
 	def constructBoundingBox(sclass, bounds, heightLimits):
 		return sclass(Math.Vector3(bounds[0][0], heightLimits[0], bounds[0][1]), Math.Vector3(bounds[1][0], heightLimits[1], bounds[1][1]))
@@ -281,9 +287,11 @@ class AxisAlignedBoundingBox(BaseBoundingBox):
 		return self._projClampPoint(point)
 
 	def __repr__(self):
-		return 'AxisAlignedBoundingBox(point0={!r}, point1={!r})'.format(self._point0, self._point1)
+		return '{}(point0={!r}, point1={!r})'.format(self.__class__.__name__, self._point0, self._point1)
 
 class UnitBoundingBox(BaseBoundingBox):
+	__slots__ = ()
+
 	POINT_0 = Math.Vector3(0.0, 0.0, 0.0)
 	POINT_1 = Math.Vector3(1.0, 1.0, 1.0)
 
@@ -313,9 +321,11 @@ class UnitBoundingBox(BaseBoundingBox):
 		return self._projClampPoint(point)
 
 	def __repr__(self):
-		return 'UnitBoundingBox()'
+		return '{}()'.format(self.__class__.__name__)
 
 class MatrixBoundingBox(UnitBoundingBox):
+	__slots__ = ('iBounds', )
+
 	@classmethod
 	def new(sclass, iBounds=None):
 		return sclass(iBounds if iBounds is not None else MathUtils.getIdentityMatrix())
@@ -385,9 +395,11 @@ class MatrixBoundingBox(UnitBoundingBox):
 		return nMatrix.applyPoint(super(MatrixBoundingBox, self).projClampPoint(iMatrix.applyPoint(point)))
 
 	def __repr__(self):
-		return 'MatrixBoundingBox(iBounds={!r})'.format(self.iBounds)
+		return '{}(iBounds={!r})'.format(self.__class__.__name__, self.iBounds)
 
 class BaseBoundingSphere(object):
+	__slots__ = ('__weakref__', '_center', '_radius')
+
 	def __init__(self, center, radius):
 		self._center = center
 		self._radius = radius
@@ -419,12 +431,14 @@ class BaseBoundingSphere(object):
 		return False
 
 	def __repr__(self):
-		return 'BaseBoundingSphere(center={!r}, radius={!r})'.format(self._center, self._radius)
+		return '{}(center={!r}, radius={!r})'.format(self.__class__.__name__, self._center, self._radius)
 
 	def __del__(self):
 		return
 
 class AxisAlignedBoundingSphere(BaseBoundingSphere):
+	__slots__ = ()
+
 	@classmethod
 	def new(sclass, center, radius):
 		if not isinstance(center, Math.Vector3):
@@ -451,9 +465,11 @@ class AxisAlignedBoundingSphere(BaseBoundingSphere):
 		return self._collisionSegment(point0, point1)
 
 	def __repr__(self):
-		return 'AxisAlignedBoundingSphere(center={!r}, radius={!r})'.format(self._center, self._radius)
+		return '{}(center={!r}, radius={!r})'.format(self.__class__.__name__, self._center, self._radius)
 
 class UnitBoundingSphere(BaseBoundingSphere):
+	__slots__ = ()
+
 	CENTER = Math.Vector3(0.5, 0.5, 0.5)
 	RADIUS = Math.Vector3(0.5, 0.5, 0.5)
 
@@ -471,9 +487,11 @@ class UnitBoundingSphere(BaseBoundingSphere):
 		return self._collisionSegment(point0, point1)
 
 	def __repr__(self):
-		return 'UnitBoundingSphere()'
+		return '{}()'.format(self.__class__.__name__)
 
 class MatrixBoundingEllipse(UnitBoundingSphere):
+	__slots__ = ('iBounds', )
+
 	@classmethod
 	def new(sclass, iBounds=None):
 		return sclass(iBounds if iBounds is not None else MathUtils.getIdentityMatrix())
@@ -505,4 +523,4 @@ class MatrixBoundingEllipse(UnitBoundingSphere):
 		return super(MatrixBoundingEllipse, self).collisionSegment(iMatrix.applyPoint(point0), iMatrix.applyPoint(point1))
 
 	def __repr__(self):
-		return 'MatrixBoundingEllipse(iBounds={!r})'.format(self.iBounds)
+		return '{}(iBounds={!r})'.format(self.__class__.__name__, self.iBounds)

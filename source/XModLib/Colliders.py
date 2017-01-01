@@ -53,7 +53,7 @@ class Colliders(object):
 				distance, cos, armor = collisionResult
 				collisionResults.append((distance, vehicle, cos, armor))
 		if collisionResults:
-			distance, vehicle, cos, armor = min(collisionResults, key = lambda collisionResult: collisionResult[0])
+			distance, vehicle, cos, armor = min(collisionResults, key=lambda collisionResult: collisionResult[0])
 			return startPoint + MathUtils.getNormalisedVector(endPoint - startPoint).scale(distance), vehicle, cos, armor
 		return None
 
