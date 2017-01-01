@@ -14,6 +14,7 @@ import BigWorld
 # WoT Client
 # *************************
 import constants
+import gui.app_loader
 import gui.SystemMessages
 import gui.DialogsInterface
 import gui.shared.notifications
@@ -32,7 +33,7 @@ import messenger.formatters.collections_by_type
 # *************************
 # X-Mod Library
 # *************************
-from .AppLoader import AppLoader
+# Nothing
 
 class Messenger(object):
 	@staticmethod
@@ -48,8 +49,8 @@ class Messenger(object):
 
 	@staticmethod
 	def showMessageOnPanel(msgType, msgKey, msgText, msgColor):
-		if AppLoader.getBattleApp() is not None and msgType in ['Vehicle', 'VehicleError', 'Player']:
-			panel = AppLoader.getBattleApp().containerManager.getContainer(gui.Scaleform.framework.ViewTypes.VIEW).getView().components['battle' + msgType + 'Messages']
+		if gui.app_loader.g_appLoader.getDefBattleApp() is not None and msgType in ['Vehicle', 'VehicleError', 'Player']:
+			panel = gui.app_loader.g_appLoader.getDefBattleApp().containerManager.getContainer(gui.Scaleform.framework.ViewTypes.VIEW).getView().components['battle' + msgType + 'Messages']
 			methods = gui.Scaleform.daapi.view.battle.shared.messages.fading_messages._COLOR_TO_METHOD
 			if msgColor in methods:
 				getattr(panel, methods[msgColor])(msgKey, msgText)
@@ -225,5 +226,5 @@ class SimpleDialog(gui.Scaleform.daapi.view.dialogs.SimpleDialog.SimpleDialog):
 	@staticmethod
 	def loadView(alias, title, message, buttons=None):
 		buttons = buttons if buttons is not None else list()
-		AppLoader.getLobbyApp().loadView(alias, None, message, title, buttons, None)
+		gui.app_loader.g_appLoader.getDefLobbyApp().loadView(alias, None, message, title, buttons, None)
 		return
