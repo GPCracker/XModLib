@@ -7,6 +7,11 @@ import functools
 import weakref
 
 # *************************
+# Python backports
+# *************************
+import backports.enum
+
+# *************************
 # BigWorld
 # *************************
 import BigWorld
@@ -21,49 +26,44 @@ import BigWorld
 # *************************
 # Nothing
 
-class Callback(object):
+class Callback(int):
+	__slots__ = ()
+
 	@staticmethod
 	def getMethodProxy(method, *args, **kwargs):
 		return functools.partial(weakref.proxy(method.im_func), weakref.proxy(method.im_self), *args, **kwargs)
 
 	@staticmethod
-	def getPartial(function, *args, **kwargs):
-		return functools.partial(function, *args, **kwargs)
-
-	@staticmethod
-	def getProxy(object):
-		return weakref.proxy(object)
-
-	@staticmethod
-	def registerCallback(time, func):
+	def _register(time, func):
 		return BigWorld.callback(time, func)
 
 	@staticmethod
-	def cancelCallback(callbackID):
+	def _cancel(callbackID):
 		try:
 			BigWorld.cancelCallback(callbackID)
 		except ValueError:
 			return False
 		return True
 
-	def __init__(self, time, callback):
-		self.__cbID = self.registerCallback(time, callback)
-		return
+	def __new__(sclass, time, callback):
+		return super(Callback, sclass).__new__(sclass, sclass._register(time, callback))
 
-	@property
-	def callbackID(self):
-		return self.__cbID
+	def __repr__(self):
+		return '{}({})'.format(self.__class__.__name__, super(Callback, self).__repr__())
 
 	def __del__(self):
-		self.cancelCallback(self.__cbID)
+		self._cancel(self)
 		return
 
-class CallbackLoop(object):
-	CALLBACK_FIRST = 0x0
-	CALL_FIRST = 0x1
-	CALL_ONLY = 0x2
+class CallbackLoopType(backports.enum.Enum):
+	SINGLE = 'single'
+	STATIC = 'static'
+	DYNAMIC = 'dynamic'
 
-	def __init__(self, interval, function, calltype=CALLBACK_FIRST):
+class CallbackLoop(object):
+	__slots__ = ('__weakref__', '_interval', '_function', '_calltype', '_callback')
+
+	def __init__(self, interval, function, calltype=CallbackLoopType.STATIC):
 		self._interval = interval
 		self._function = function
 		self._calltype = calltype
@@ -74,27 +74,28 @@ class CallbackLoop(object):
 	def isActive(self):
 		return self._callback is not None
 
+	def _schedule(self, interval):
+		return Callback(interval, Callback.getMethodProxy(self._callloop))
+
 	def _callloop(self):
-		if self._calltype == self.CALLBACK_FIRST:
-			self._callback = Callback(self._interval, Callback.getMethodProxy(self._callloop)) if self.isActive else None
-			if self.isActive:
+		if not isinstance(self._calltype, CallbackLoopType):
+			raise ValueError('Incorrect callback loop type.')
+		if self.isActive:
+			if self._calltype == CallbackLoopType.SINGLE:
+				self._callback = None
 				self._function()
-		elif self._calltype == self.CALL_FIRST:
-			if self.isActive:
+			elif self._calltype == CallbackLoopType.STATIC:
+				self._callback = self._schedule(self._interval)
 				self._function()
-			self._callback = Callback(self._interval, Callback.getMethodProxy(self._callloop)) if self.isActive else None
-		elif self._calltype == self.CALL_ONLY:
-			if self.isActive:
+			elif self._calltype == CallbackLoopType.DYNAMIC:
 				self._function()
-			self._callback = None
-		else:
-			raise ValueError('Incorrect call type.')
+				self._callback = self._schedule(self._interval)
 		return
 
 	def start(self, delay=None):
 		if self.isActive:
 			raise RuntimeError('Callback loop is already started.')
-		self._callback = Callback(delay if delay is not None else self._interval, Callback.getMethodProxy(self._callloop))
+		self._callback = self._schedule(delay if delay is not None else self._interval)
 		return
 
 	def stop(self):
@@ -104,7 +105,7 @@ class CallbackLoop(object):
 		return
 
 	def __repr__(self):
-		return 'CallbackLoop(interval={!r}, function={!r}, calltype={!r})'.format(self._interval, self._function, self._calltype)
+		return '{}(interval={!r}, function={!r}, calltype={!r})'.format(self.__class__.__name__, self._interval, self._function, self._calltype)
 
 	def __del__(self):
 		self._callback = None
