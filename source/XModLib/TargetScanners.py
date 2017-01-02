@@ -24,6 +24,24 @@ from .MathUtils import MathUtils
 from .VehicleBounds import VehicleBounds
 from .AnalyticGeometry import MatrixBoundingBox, MatrixBoundingEllipse
 
+class XRayScanner(object):
+	@classmethod
+	def scanTarget(sclass, scanStart, scanStop, entities, skipGun=False):
+		scanResult = Colliders.collideVehicles(entities, scanStart, scanStop, skipGun)
+		return scanResult[1] if scanResult is not None else None
+
+	@classmethod
+	def getTarget(sclass, filterID=None, filterVehicle=None, maxDistance=720.0, skipGun=False, skipPlayer=True, entities=None):
+		scanDir, scanStart = AvatarInputHandler.cameras.getWorldRayAndPoint(*BigWorld.player().inputHandler.ctrl._aimOffset)
+		scanDir.normalise()
+		scanStop = scanStart + scanDir * maxDistance
+		return sclass.scanTarget(
+			scanStart,
+			scanStop,
+			Colliders.getVisibleVehicles(filterID, filterVehicle, skipPlayer) if entities is None else entities,
+			skipGun
+		)
+
 class BoundingScanner(object):
 	@staticmethod
 	def getVehicleBounds(entity):
