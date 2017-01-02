@@ -19,8 +19,8 @@ import ResMgr
 # *************************
 # X-Mod Library
 # *************************
-from .ResMgrUtils import ResMgrUtils
-from .XMLConfigReader import XMLConfigReader, ListXMLReaderMeta
+from . import ResMgrUtils
+from . import XMLConfigReader
 
 class MacrosFormatter(object):
 	__slots__ = ('__weakref__', 'header', 'trailer')
@@ -68,8 +68,8 @@ class UmlautDecoder(list):
 
 	@classmethod
 	def from_xml(sclass, xml):
-		xml_config_reader = XMLConfigReader((
-			('UmlautReplaceList', ListXMLReaderMeta.construct(
+		xml_config_reader = XMLConfigReader.XMLConfigReader((
+			('UmlautReplaceList', XMLConfigReader.ListXMLReaderMeta.construct(
 				'UmlautReplaceListXMLReader',
 				item_name='umlaut',
 				item_type='Dict',

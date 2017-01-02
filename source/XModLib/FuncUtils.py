@@ -3,6 +3,8 @@
 # *************************
 # Python
 # *************************
+import weakref
+import functools
 import traceback
 
 # *************************
@@ -19,6 +21,9 @@ import traceback
 # X-Mod Library
 # *************************
 # Nothing
+
+def getMethodProxy(method, *args, **kwargs):
+	return functools.partial(weakref.proxy(method.im_func), weakref.proxy(method.im_self), *args, **kwargs)
 
 class Event(set):
 	__slots__ = ()

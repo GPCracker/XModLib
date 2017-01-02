@@ -24,7 +24,7 @@ import backports.enum
 # *************************
 # X-Mod Library
 # *************************
-from .FuncUtils import Event as HookEvent
+# Nothing
 
 class HookInvoke(backports.enum.Enum):
 	MASTER = 'master'

@@ -11,8 +11,8 @@ import collections
 # *************************
 # BigWorld
 # *************************
-import BigWorld
 import Keys
+import BigWorld
 
 # *************************
 # WoT Client

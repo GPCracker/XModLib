@@ -19,10 +19,10 @@ import AvatarInputHandler.cameras
 # *************************
 # X-Mod Library
 # *************************
-from .MathUtils import MathUtils
-from .VehicleBounds import VehicleBounds
-from .CollisionUtils import CollisionUtils
-from .AnalyticGeometry import MatrixBoundingBox, MatrixBoundingEllipse
+from . import MathUtils
+from . import VehicleBounds
+from . import CollisionUtils
+from . import AnalyticGeometry
 
 class XRayScanner(object):
 	@classmethod
@@ -84,7 +84,7 @@ class BBoxScanner(BoundingScanner):
 	@classmethod
 	def scanTargets(sclass, scanStart, scanStop, entities, scalar=1.0):
 		scaleMatrix = sclass.getScaleMatrix(scalar)
-		matrixBoundingBox = MatrixBoundingBox.new()
+		matrixBoundingBox = AnalyticGeometry.MatrixBoundingBox(MathUtils.getIdentityMatrix())
 		def checkEntity(entity):
 			matrixBoundingBox.iBounds = Math.MatrixInverse(MathUtils.getMatrixProduct(scaleMatrix, sclass.getVehicleBounds(entity)))
 			return matrixBoundingBox.collisionSegment(scanStart, scanStop)
@@ -94,7 +94,7 @@ class BEllipseScanner(BoundingScanner):
 	@classmethod
 	def scanTargets(sclass, scanStart, scanStop, entities, scalar=1.0):
 		scaleMatrix = sclass.getScaleMatrix(scalar)
-		matrixBoundingEllipse = MatrixBoundingEllipse.new()
+		matrixBoundingEllipse = AnalyticGeometry.MatrixBoundingEllipse(MathUtils.getIdentityMatrix())
 		def checkEntity(entity):
 			matrixBoundingEllipse.iBounds = Math.MatrixInverse(MathUtils.getMatrixProduct(scaleMatrix, sclass.getVehicleBounds(entity)))
 			return matrixBoundingEllipse.collisionSegment(scanStart, scanStop)

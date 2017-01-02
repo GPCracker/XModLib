@@ -35,45 +35,31 @@ import messenger.formatters.collections_by_type
 # *************************
 # Nothing
 
-class Messenger(object):
-	@staticmethod
-	def getBattleChatControllers():
-		squadChannelClientID = messenger.ext.channel_num_gen.getClientID4Prebattle(constants.PREBATTLE_TYPE.SQUAD)
-		teamChannelClientID = messenger.ext.channel_num_gen.getClientID4BattleChannel(messenger.m_constants.BATTLE_CHANNEL.TEAM.name)
-		commonChannelClientID = messenger.ext.channel_num_gen.getClientID4BattleChannel(messenger.m_constants.BATTLE_CHANNEL.COMMON.name)
-		return (
-			messenger.MessengerEntry.g_instance.gui.channelsCtrl.getController(squadChannelClientID),
-			messenger.MessengerEntry.g_instance.gui.channelsCtrl.getController(teamChannelClientID),
-			messenger.MessengerEntry.g_instance.gui.channelsCtrl.getController(commonChannelClientID)
-		)
+def getBattleChatControllers():
+	squadChannelClientID = messenger.ext.channel_num_gen.getClientID4Prebattle(constants.PREBATTLE_TYPE.SQUAD)
+	teamChannelClientID = messenger.ext.channel_num_gen.getClientID4BattleChannel(messenger.m_constants.BATTLE_CHANNEL.TEAM.name)
+	commonChannelClientID = messenger.ext.channel_num_gen.getClientID4BattleChannel(messenger.m_constants.BATTLE_CHANNEL.COMMON.name)
+	return (
+		messenger.MessengerEntry.g_instance.gui.channelsCtrl.getController(squadChannelClientID),
+		messenger.MessengerEntry.g_instance.gui.channelsCtrl.getController(teamChannelClientID),
+		messenger.MessengerEntry.g_instance.gui.channelsCtrl.getController(commonChannelClientID)
+	)
 
-	@staticmethod
-	def showMessageOnPanel(msgType, msgKey, msgText, msgColor):
-		battleApp = gui.app_loader.g_appLoader.getDefBattleApp()
-		if battleApp is not None and msgType in ['Vehicle', 'VehicleError', 'Player']:
-			battlePage = battleApp.containerManager.getContainer(gui.Scaleform.framework.ViewTypes.VIEW).getView()
-			messagePanel = battlePage.components['battle' + msgType + 'Messages']
-			messageMethods = gui.Scaleform.daapi.view.battle.shared.messages.fading_messages._COLOR_TO_METHOD
-			if msgColor in messageMethods:
-				getattr(messagePanel, messageMethods[msgColor])(msgKey, msgText)
-		return
-
-class LobbyMessenger(object):
-	@staticmethod
-	def getGuiSettings(*args, **kwargs):
-		return gui.shared.notifications.NotificationGuiSettings(*args, **kwargs)
-
-	@staticmethod
-	def appendFormatter(key, formatter):
-		messenger.formatters.collections_by_type.CLIENT_FORMATTERS[key] = formatter
-		return
-
-	@staticmethod
-	def pushClientMessage(message, key, *args, **kwargs):
-		gui.SystemMessages._getSystemMessages().proto.serviceChannel.pushClientMessage(message, key, *args, **kwargs)
-		return
+def showMessageOnPanel(msgType, msgKey, msgText, msgColor):
+	battleApp = gui.app_loader.g_appLoader.getDefBattleApp()
+	if battleApp is not None and msgType in ['Vehicle', 'VehicleError', 'Player']:
+		battlePage = battleApp.containerManager.getContainer(gui.Scaleform.framework.ViewTypes.VIEW).getView()
+		messagePanel = battlePage.components['battle' + msgType + 'Messages']
+		messageMethods = gui.Scaleform.daapi.view.battle.shared.messages.fading_messages._COLOR_TO_METHOD
+		if msgColor in messageMethods:
+			getattr(messagePanel, messageMethods[msgColor])(msgKey, msgText)
+	return
 
 class SystemMessageFormatter(object):
+	@staticmethod
+	def makeGuiSettings(*args, **kwargs):
+		return gui.shared.notifications.NotificationGuiSettings(*args, **kwargs)
+
 	def isAsync(self):
 		return False
 
@@ -82,6 +68,10 @@ class SystemMessageFormatter(object):
 
 	def __init__(self, guiSettings):
 		self.guiSettings = guiSettings
+		return
+
+	def install(self, key):
+		messenger.formatters.collections_by_type.CLIENT_FORMATTERS[key] = self
 		return
 
 	def format(self, message, *args, **kwargs):
@@ -109,6 +99,10 @@ class SystemMessage(dict):
 	def __setitem__(self, key, value):
 		if key not in self.protected_keys:
 			super(SystemMessage, self).__setitem__(key, value)
+		return
+
+	def push(self, key, *args, **kwargs):
+		gui.SystemMessages._getSystemMessages().proto.serviceChannel.pushClientMessage(self, key, *args, **kwargs)
 		return
 
 	def copy(self):

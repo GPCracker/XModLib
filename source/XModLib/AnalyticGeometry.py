@@ -8,8 +8,8 @@ import math
 # *************************
 # BigWorld
 # *************************
-import BigWorld
 import Math
+import BigWorld
 
 # *************************
 # WoT Client
@@ -19,7 +19,7 @@ import Math
 # *************************
 # X-Mod Library
 # *************************
-from .MathUtils import MathUtils
+from . import MathUtils
 
 class Plane(object):
 	__slots__ = ('__weakref__', 'point', 'normal')
