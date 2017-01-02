@@ -58,17 +58,6 @@ class Messenger(object):
 				getattr(messagePanel, messageMethods[msgColor])(msgKey, msgText)
 		return
 
-	@staticmethod
-	def showMessageInChat(msgText):
-		if messenger.MessengerEntry.g_instance is not None:
-			messenger.MessengerEntry.g_instance.gui.addClientMessage(msgText)
-		return
-
-	@staticmethod
-	def externalBrowserOpenURL(url):
-		BigWorld.wg_openWebBrowser(url)
-		return
-
 class LobbyMessenger(object):
 	@staticmethod
 	def getGuiSettings(*args, **kwargs):
@@ -82,11 +71,6 @@ class LobbyMessenger(object):
 	@staticmethod
 	def pushClientMessage(message, key, *args, **kwargs):
 		gui.SystemMessages._getSystemMessages().proto.serviceChannel.pushClientMessage(message, key, *args, **kwargs)
-		return
-
-	@staticmethod
-	def showSimpleDialog(title, text, buttons, handler=None):
-		gui.DialogsInterface.showDialog(gui.Scaleform.daapi.view.dialogs.SimpleDialogMeta(title, text, buttons), handler)
 		return
 
 class SystemMessageFormatter(object):
@@ -167,56 +151,4 @@ class SystemMessageActionHandler(object):
 
 	def handleAction(self, model, entityID, action):
 		self.handler(model, entityID, action)
-		return
-
-class SimpleDialogButtons(object):
-	def __init__(self, buttons=None):
-		self.buttons = buttons if buttons is not None else list()
-		return None
-
-	def getLabels(self):
-		return self.buttons
-
-class SimpleDialogButton(dict):
-	default_values = {
-		'id': '',
-		'label': '',
-		'focused': True
-	}
-
-	def __init__(self, *args, **kwargs):
-		super(SimpleDialogButton, self).__init__(*args, **kwargs)
-		self.update((key, value) for key, value in self.default_values.iteritems() if key not in self)
-		return
-
-class SimpleDialog(gui.Scaleform.daapi.view.dialogs.SimpleDialog.SimpleDialog):
-	handler = lambda buttonID: None
-
-	@classmethod
-	def factory(sclass, name, handler=handler):
-		return type(name, (sclass, ), {'handler': staticmethod(handler)})
-
-	def onButtonClick(self, buttonID):
-		self.handler(buttonID)
-		return super(SimpleDialog, self).onButtonClick(buttonID)
-
-	@classmethod
-	def install(sclass, alias):
-		gui.Scaleform.framework.g_entitiesFactories.addSettings(
-			gui.Scaleform.framework.GroupedViewSettings(
-				alias,
-				sclass,
-				'simpleDialog.swf',
-				gui.Scaleform.framework.ViewTypes.TOP_WINDOW,
-				'',
-				None,
-				gui.Scaleform.framework.ScopeTemplates.DYNAMIC_SCOPE
-			)
-		)
-		return
-
-	@staticmethod
-	def loadView(alias, title, message, buttons=None):
-		buttons = buttons if buttons is not None else list()
-		gui.app_loader.g_appLoader.getDefLobbyApp().loadView(alias, None, message, title, buttons, None)
 		return
