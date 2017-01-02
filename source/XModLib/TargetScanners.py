@@ -19,15 +19,15 @@ import AvatarInputHandler.cameras
 # *************************
 # X-Mod Library
 # *************************
-from .Colliders import Colliders
 from .MathUtils import MathUtils
 from .VehicleBounds import VehicleBounds
+from .CollisionUtils import CollisionUtils
 from .AnalyticGeometry import MatrixBoundingBox, MatrixBoundingEllipse
 
 class XRayScanner(object):
 	@classmethod
 	def scanTarget(sclass, scanStart, scanStop, entities, skipGun=False):
-		scanResult = Colliders.collideVehicles(entities, scanStart, scanStop, skipGun)
+		scanResult = CollisionUtils.collideVehicles(entities, scanStart, scanStop, skipGun)
 		return scanResult[1] if scanResult is not None else None
 
 	@classmethod
@@ -38,7 +38,7 @@ class XRayScanner(object):
 		return sclass.scanTarget(
 			scanStart,
 			scanStop,
-			Colliders.getVisibleVehicles(filterID, filterVehicle, skipPlayer) if entities is None else entities,
+			CollisionUtils.getVisibleVehicles(filterID, filterVehicle, skipPlayer) if entities is None else entities,
 			skipGun
 		)
 
@@ -71,7 +71,7 @@ class BoundingScanner(object):
 		return sclass.scanTargets(
 			scanStart,
 			scanStop,
-			Colliders.getVisibleVehicles(filterID, filterVehicle, skipPlayer) if entities is None else entities,
+			CollisionUtils.getVisibleVehicles(filterID, filterVehicle, skipPlayer) if entities is None else entities,
 			scalar
 		)
 

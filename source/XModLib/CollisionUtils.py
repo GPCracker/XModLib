@@ -22,7 +22,7 @@ import constants
 from .MathUtils import MathUtils
 from .VehicleMath import VehicleMath
 
-class Colliders(object):
+class CollisionUtils(object):
 	@staticmethod
 	def collideStatic(startPoint, endPoint, collisionFlags=128, resultFilter=None):
 		'''
