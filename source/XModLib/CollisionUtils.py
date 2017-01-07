@@ -3,7 +3,7 @@
 # *************************
 # Python
 # *************************
-# Nothing
+import itertools
 
 # *************************
 # BigWorld
@@ -29,14 +29,12 @@ def collideStatic(startPoint, endPoint, collisionFlags=128, resultFilter=None):
 	return BigWorld.wg_collideSegment(BigWorld.player().spaceID, startPoint, endPoint, collisionFlags, resultFilter)
 
 def getVisibleVehicles(filterID=None, filterVehicle=None, skipPlayer=False):
-	vehicles = list()
-	for vehicleID in filter(filterID, BigWorld.player().arena.vehicles):
-		if skipPlayer and vehicleID == BigWorld.player().playerVehicleID:
-			continue
-		vehicle = BigWorld.entity(vehicleID)
-		if vehicle is not None and vehicle.isStarted:
-			vehicles.append(vehicle)
-	return filter(filterVehicle, vehicles)
+	vehicleIDs = iter(BigWorld.player().arena.vehicles)
+	vehicleIDs = itertools.ifilterfalse(lambda vehicleID: skipPlayer and vehicleID == BigWorld.player().playerVehicleID, vehicleIDs)
+	vehicleIDs = itertools.ifilter(filterID, vehicleIDs)
+	vehicles = itertools.imap(BigWorld.entity, vehicleIDs)
+	vehicles = itertools.ifilter(lambda vehicle: vehicle is not None and vehicle.isStarted, vehicles)
+	return list(itertools.ifilter(filterVehicle, vehicles))
 
 def collideVehicles(vehicles, startPoint, endPoint, skipGun=False):
 	'''
