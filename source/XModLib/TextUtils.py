@@ -19,7 +19,7 @@ import ResMgr
 # *************************
 # X-Mod Library
 # *************************
-from . import ResMgrUtils
+from . import EngineUtils
 from . import XMLConfigReader
 
 class MacrosFormatter(object):
@@ -95,7 +95,7 @@ class TranslatorsCache(dict):
 
 	@staticmethod
 	def _get_translator(domain):
-		path = ResMgrUtils.basepath(ResMgrUtils.join_path('text/LC_MESSAGES', domain + '.mo'))
+		path = EngineUtils.getResMgrBasePath(EngineUtils.joinResMgrPath('text/LC_MESSAGES', domain + '.mo'))
 		return gettext.translation(domain, path, languages=['text'])
 
 	def __missing__(self, domain):
