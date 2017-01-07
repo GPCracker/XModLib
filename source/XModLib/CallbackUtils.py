@@ -3,7 +3,8 @@
 # *************************
 # Python
 # *************************
-# Nothing
+import weakref
+import functools
 
 # *************************
 # Python backports
@@ -23,7 +24,10 @@ import BigWorld
 # *************************
 # X-Mod Library
 # *************************
-from . import FuncUtils
+# Nothing
+
+def getMethodProxy(method, *args, **kwargs):
+	return functools.partial(weakref.proxy(method.im_func), weakref.proxy(method.im_self), *args, **kwargs)
 
 class Callback(int):
 	__slots__ = ()
@@ -70,7 +74,7 @@ class CallbackLoop(object):
 		return self._callback is not None
 
 	def _schedule(self, interval):
-		return Callback(interval, FuncUtils.getMethodProxy(self._callloop))
+		return Callback(interval, getMethodProxy(self._callloop))
 
 	def _callloop(self):
 		if not isinstance(self._calltype, CallbackLoopType):

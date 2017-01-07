@@ -5,6 +5,7 @@
 # *************************
 import types
 import functools
+import traceback
 
 # *************************
 # Python backports
@@ -36,6 +37,29 @@ class PropertyAction(backports.enum.Enum):
 	GET = 'fget'
 	SET = 'fset'
 	DEL = 'fdel'
+
+class HookEvent(set):
+	__slots__ = ()
+
+	def __iadd__(self, delegate):
+		if not callable(delegate):
+			return NotImplemented
+		self.add(delegate)
+		return self
+
+	def __isub__(self, delegate):
+		if not callable(delegate):
+			return NotImplemented
+		self.remove(delegate)
+		return self
+
+	def __call__(self, *args, **kwargs):
+		for delegate in self:
+			try:
+				delegate(*args, **kwargs)
+			except:
+				traceback.print_exc()
+		return
 
 class HookFunction(object):
 	__slots__ = ('__weakref__', '__name__', '_hook', '_origin', '_invoke', 'active')
