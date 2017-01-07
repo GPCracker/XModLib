@@ -16,18 +16,15 @@ import BigWorld
 import constants
 import gui.app_loader
 import gui.SystemMessages
-import gui.DialogsInterface
 import gui.shared.notifications
-import gui.Scaleform.framework
 import gui.Scaleform.framework.ViewTypes
-import gui.Scaleform.daapi.settings.views
-import gui.Scaleform.daapi.view.dialogs.SimpleDialog
 import gui.Scaleform.daapi.view.battle.shared.messages.fading_messages
 import notification.settings
 import notification.NotificationMVC
 import notification.actions_handlers
 import messenger.MessengerEntry
 import messenger.ext.channel_num_gen
+import messenger.formatters.service_channel
 import messenger.formatters.collections_by_type
 
 # *************************
@@ -49,83 +46,63 @@ def showMessageOnPanel(msgType, msgKey, msgText, msgColor):
 	battleApp = gui.app_loader.g_appLoader.getDefBattleApp()
 	if battleApp is not None and msgType in ['Vehicle', 'VehicleError', 'Player']:
 		battlePage = battleApp.containerManager.getContainer(gui.Scaleform.framework.ViewTypes.VIEW).getView()
-		messagePanel = battlePage.components['battle' + msgType + 'Messages']
 		messageMethods = gui.Scaleform.daapi.view.battle.shared.messages.fading_messages._COLOR_TO_METHOD
 		if msgColor in messageMethods:
-			getattr(messagePanel, messageMethods[msgColor])(msgKey, msgText)
+			getattr(battlePage.components['battle' + msgType + 'Messages'], messageMethods[msgColor])(msgKey, msgText)
 	return
 
-class SystemMessageFormatter(object):
-	@staticmethod
-	def makeGuiSettings(*args, **kwargs):
-		return gui.shared.notifications.NotificationGuiSettings(*args, **kwargs)
-
-	def isAsync(self):
-		return False
-
-	def isNotify(self):
-		return True
-
-	def __init__(self, guiSettings):
-		self.guiSettings = guiSettings
-		return
-
-	def install(self, key):
-		messenger.formatters.collections_by_type.CLIENT_FORMATTERS[key] = self
-		return
-
-	def format(self, message, *args, **kwargs):
-		return message, self.guiSettings
+def pushSystemMessage(msgData, msgType, isAlert=False, auxData=None):
+	return gui.SystemMessages._getSystemMessages().proto.serviceChannel.pushClientMessage(msgData, msgType, isAlert=isAlert, auxData=auxData)
 
 class SystemMessage(dict):
-	protected_keys = {'icon', 'defaultIcon', 'bgIcon'}
-	default_values = {
-		'message': '',
-		'type': 'lightGrey',
-		'timestamp': -1,
-		'icon': '',
-		'defaultIcon': '',
-		'bgIcon': '',
-		'filters': list(),
-		'savedData': None,
-		'buttonsLayout': list()
-	}
-
-	def __init__(self, *args, **kwargs):
-		super(SystemMessage, self).__init__(*args, **kwargs)
-		self.update((key, value) for key, value in self.default_values.iteritems() if key not in self)
-		return
-
 	def __setitem__(self, key, value):
-		if key not in self.protected_keys:
+		if key not in ('icon', 'bgIcon', 'defaultIcon'):
 			super(SystemMessage, self).__setitem__(key, value)
-		return
-
-	def push(self, key, *args, **kwargs):
-		gui.SystemMessages._getSystemMessages().proto.serviceChannel.pushClientMessage(self, key, *args, **kwargs)
 		return
 
 	def copy(self):
 		return self.__class__(self)
 
 class SystemMessageButton(dict):
-	default_values = {
-		'action': '',
-		'label': '',
-		'type': 'submit'
-	}
-
-	def __init__(self, *args, **kwargs):
-		super(SystemMessageButton, self).__init__(*args, **kwargs)
-		self.update((key, value) for key, value in self.default_values.iteritems() if key not in self)
+	'''
+	type('submit', 'cancel'), label, action, [width]
+	'''
+	def __init__(self):
+		self.setdefault('type', 'submit')
+		self.setdefault('label', '')
+		self.setdefault('action', '')
 		return
 
-class SystemMessageActionHandler(object):
-	handler = lambda model, entityID, action: None
+class SystemMessageFormatter(messenger.formatters.service_channel.ServiceChannelFormatter):
+	def _getGuiSettings(self, auxData=None):
+		return gui.shared.notifications.NotificationGuiSettings(isNotify=self.isNotify(), auxData=auxData)
 
+	def format(self, message, *args):
+		formatted = SystemMessage(message)
+		formatted.setdefault('message', '')
+		formatted.setdefault('type', 'lightGrey')
+		formatted.setdefault('icon', '')
+		formatted.setdefault('bgIcon', '')
+		formatted.setdefault('defaultIcon', '')
+		formatted.setdefault('timestamp', -1)
+		formatted.setdefault('filters', list())
+		formatted.setdefault('savedData', None)
+		formatted.setdefault('buttonsLayout', list())
+		return formatted, self._getGuiSettings(*args)
+
+	def install(self, msgType):
+		messenger.formatters.collections_by_type.CLIENT_FORMATTERS[msgType] = self
+		return
+
+class _SystemMessageActionHandler(notification.actions_handlers._ActionHandler):
 	@classmethod
-	def factory(sclass, name, handler=handler):
-		return type(name, (sclass, ), {'handler': staticmethod(handler)})
+	def getNotType(sclass):
+		return notification.settings.NOTIFICATION_TYPE.MESSAGE
+
+	@staticmethod
+	def handleAction(model, entityID, action):
+		raise NotImplementedError
+		return
 
 	@classmethod
 	def install(sclass):
@@ -135,14 +112,5 @@ class SystemMessageActionHandler(object):
 		notification.actions_handlers._AVAILABLE_HANDLERS += (sclass, )
 		return
 
-	@classmethod
-	def getNotType(sclass):
-		return notification.settings.NOTIFICATION_TYPE.MESSAGE
-
-	@classmethod
-	def getActions(sclass):
-		return ()
-
-	def handleAction(self, model, entityID, action):
-		self.handler(model, entityID, action)
-		return
+def SystemMessageActionHandler(handler):
+	return type('SystemMessageActionHandler', (_SystemMessageActionHandler, ), {'handleAction': staticmethod(handler)})
