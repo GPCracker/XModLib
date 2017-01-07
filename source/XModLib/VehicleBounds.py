@@ -3,7 +3,8 @@
 # *************************
 # Python
 # *************************
-# Nothing
+import functools
+import itertools
 
 # *************************
 # BigWorld
@@ -20,65 +21,56 @@ import Math
 # *************************
 from . import MathUtils
 
-def getComponentBoundsMatrix(bbox):
-	componentBoundsMatrix = MathUtils.getScaleMatrix(bbox[1] - bbox[0])
-	componentBoundsMatrix.translation = bbox[0]
-	return componentBoundsMatrix
+def _getUnitCornerMatricesIter():
+	return itertools.imap(MathUtils.getTranslationMatrix, itertools.starmap(Math.Vector3, itertools.product(xrange(2), repeat=3)))
 
-def getUnitBoundingPoints():
-	return (
-		Math.Vector3(0, 0, 0),
-		Math.Vector3(0, 0, 1),
-		Math.Vector3(0, 1, 0),
-		Math.Vector3(0, 1, 1),
-		Math.Vector3(1, 0, 0),
-		Math.Vector3(1, 0, 1),
-		Math.Vector3(1, 1, 0),
-		Math.Vector3(1, 1, 1)
-	)
+def _getComponentLocalCornerPointsIter(componentBoundingBox, componentMatrixProvider, unitCornerMatrices):
+	def _getComponentStaticBoundsMatrix(componentBoundingBox):
+		matrix = MathUtils.getScaleMatrix(componentBoundingBox[1] - componentBoundingBox[0])
+		matrix.translation = componentBoundingBox[0]
+		return matrix
+	def _getComponentLocalBoundsMatrixProvider(componentStaticBoundsMatrix, componentMatrixProvider):
+		return MathUtils.getMatrixProduct(componentStaticBoundsMatrix, componentMatrixProvider)
+	def _getComponentLocalCornerPointProvider(unitCornerMatrix, componentLocalBoundsMatrixProvider):
+		return Math.Vector4Translation(MathUtils.getMatrixProduct(unitCornerMatrix, componentLocalBoundsMatrixProvider))
+	localBounds = _getComponentLocalBoundsMatrixProvider(_getComponentStaticBoundsMatrix(componentBoundingBox), componentMatrixProvider)
+	getLocalCornerPointProvider = lambda unitCornerMatrix: _getComponentLocalCornerPointProvider(unitCornerMatrix, localBounds)
+	return itertools.imap(getLocalCornerPointProvider, unitCornerMatrices)
 
-def getComponentBoundingPoints(componentBoundsMatrix, componentMatrixProvider):
-	return [Math.Vector4Translation(MathUtils.getMatrixProduct(MathUtils.getMatrixProduct(MathUtils.getTranslationMatrix(unitBoundingPoint), componentBoundsMatrix), componentMatrixProvider)) for unitBoundingPoint in getUnitBoundingPoints()]
-
-def getBoundsMatrixProvider(boundingPoints):
-	min_corner = list(boundingPoints)
-	while len(min_corner) > 1:
-		min_corner.append(MathUtils.getVector4Combiner(min_corner.pop(0), min_corner.pop(0), 'MIN'))
-	min_corner = min_corner.pop(0)
-	max_corner = list(boundingPoints)
-	while len(max_corner) > 1:
-		max_corner.append(MathUtils.getVector4Combiner(max_corner.pop(0), max_corner.pop(0), 'MAX'))
-	max_corner = max_corner.pop(0)
-	return MathUtils.getVector4MatrixAdaptor(min_corner, MathUtils.getVector4Combiner(max_corner, min_corner, 'SUBTRACT'), 'XYZ_SCALE')
+def _getLocalBoundsMatrixProvider(localCornerPoints):
+	minPoint = functools.reduce(lambda pointA, pointB: MathUtils.getVector4Combiner(pointA, pointB, 'MIN'), localCornerPoints)
+	maxPoint = functools.reduce(lambda pointA, pointB: MathUtils.getVector4Combiner(pointA, pointB, 'MAX'), localCornerPoints)
+	return MathUtils.getVector4MatrixAdaptor(minPoint, MathUtils.getVector4Combiner(maxPoint, minPoint, 'SUBTRACT'), 'XYZ_SCALE')
 
 def getVehicleBoundsMatrixProvider(vehicle):
-	chassis_offset_matrix = MathUtils.getIdentityMatrix()
-	hull_offset_matrix = MathUtils.getTranslationMatrix(vehicle.typeDescriptor.chassis['hullPosition'])
-	turret_offset_matrix = MathUtils.getTranslationMatrix(vehicle.typeDescriptor.hull['turretPositions'][0])
-	gun_offset_matrix = MathUtils.getTranslationMatrix(vehicle.typeDescriptor.turret['gunPosition'])
-	chassis_local_mprov = MathUtils.getMatrixProduct(MathUtils.getIdentityMatrix(), chassis_offset_matrix)
-	hull_local_mprov = MathUtils.getMatrixProduct(MathUtils.getIdentityMatrix(), hull_offset_matrix)
-	turret_local_mprov = MathUtils.getMatrixProduct(vehicle.appearance.turretMatrix, turret_offset_matrix)
-	gun_local_mprov = MathUtils.getMatrixProduct(vehicle.appearance.gunMatrix, gun_offset_matrix)
-	chassis_r2v_mprov = MathUtils.getMatrixProduct(chassis_local_mprov, MathUtils.getIdentityMatrix())
-	hull_r2v_mprov = MathUtils.getMatrixProduct(hull_local_mprov, chassis_r2v_mprov)
-	turret_r2v_mprov = MathUtils.getMatrixProduct(turret_local_mprov, hull_r2v_mprov)
-	gun_r2v_mprov = MathUtils.getMatrixProduct(gun_local_mprov, turret_r2v_mprov)
-	return MathUtils.getMatrixProduct(
-		getBoundsMatrixProvider(
-			getComponentBoundingPoints(
-				getComponentBoundsMatrix(vehicle.typeDescriptor.chassis['hitTester'].bbox),
-				chassis_r2v_mprov
-			) + getComponentBoundingPoints(
-				getComponentBoundsMatrix(vehicle.typeDescriptor.hull['hitTester'].bbox),
-				hull_r2v_mprov
-			) + getComponentBoundingPoints(
-				getComponentBoundsMatrix(vehicle.typeDescriptor.turret['hitTester'].bbox),
-				turret_r2v_mprov
-			) + getComponentBoundingPoints(
-				getComponentBoundsMatrix(vehicle.typeDescriptor.gun['hitTester'].bbox),
-				gun_r2v_mprov
-			)
-		),
-		vehicle.matrix
-	)
+	# Calculating vehicle component matrices: component offsets.
+	chassisOffsetMatrix = MathUtils.getIdentityMatrix()
+	hullOffsetMatrix = MathUtils.getTranslationMatrix(vehicle.typeDescriptor.chassis['hullPosition'])
+	turretOffsetMatrix = MathUtils.getTranslationMatrix(vehicle.typeDescriptor.hull['turretPositions'][0])
+	gunOffsetMatrix = MathUtils.getTranslationMatrix(vehicle.typeDescriptor.turret['gunPosition'])
+	# Calculating vehicle component matrices: component transforms.
+	chassisTransformMatrixProvider = MathUtils.getMatrixProduct(MathUtils.getIdentityMatrix(), chassisOffsetMatrix)
+	hullTransformMatrixProvider = MathUtils.getMatrixProduct(MathUtils.getIdentityMatrix(), hullOffsetMatrix)
+	turretTransformMatrixProvider = MathUtils.getMatrixProduct(vehicle.appearance.turretMatrix, turretOffsetMatrix)
+	gunTransformMatrixProvider = MathUtils.getMatrixProduct(vehicle.appearance.gunMatrix, gunOffsetMatrix)
+	# Calculating vehicle component matrices: component local transforms.
+	chassisLocalMatrixProvider = MathUtils.getMatrixProduct(chassisTransformMatrixProvider, MathUtils.getIdentityMatrix())
+	hullLocalMatrixProvider = MathUtils.getMatrixProduct(hullTransformMatrixProvider, chassisLocalMatrixProvider)
+	turretLocalMatrixProvider = MathUtils.getMatrixProduct(turretTransformMatrixProvider, hullLocalMatrixProvider)
+	gunLocalMatrixProvider = MathUtils.getMatrixProduct(gunTransformMatrixProvider, turretLocalMatrixProvider)
+	# Getting vehicle component bounding boxes.
+	chassisBoundingBox = vehicle.typeDescriptor.chassis['hitTester'].bbox
+	hullBoundingBox = vehicle.typeDescriptor.hull['hitTester'].bbox
+	turretBoundingBox = vehicle.typeDescriptor.turret['hitTester'].bbox
+	gunBoundingBox = vehicle.typeDescriptor.gun['hitTester'].bbox
+	# Getting vehicle component unit corner matrices.
+	unitCornerMatrices = list(_getUnitCornerMatricesIter())
+	# Getting vehicle local corner points for all components.
+	localCornerPoints = list(itertools.chain(
+		_getComponentLocalCornerPointsIter(chassisBoundingBox, chassisLocalMatrixProvider, unitCornerMatrices),
+		_getComponentLocalCornerPointsIter(hullBoundingBox, hullLocalMatrixProvider, unitCornerMatrices),
+		_getComponentLocalCornerPointsIter(turretBoundingBox, turretLocalMatrixProvider, unitCornerMatrices),
+		_getComponentLocalCornerPointsIter(gunBoundingBox, gunLocalMatrixProvider, unitCornerMatrices)
+	))
+	# Returning vehicle resulting bounds matrix.
+	return MathUtils.getMatrixProduct(_getLocalBoundsMatrixProvider(localCornerPoints), vehicle.matrix)
