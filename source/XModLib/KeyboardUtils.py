@@ -63,12 +63,12 @@ class KeyboardEvent(collections.namedtuple('KeyboardEvent', ('key', 'modifiers',
 	__slots__ = ()
 
 	@staticmethod
-	def _parse_event(event):
+	def _parseEvent(event):
 		cmask = ~(MODIFIER_KEY2FLAG[event.key] if event.key in MODIFIER_KEYS and not BigWorld.isKeyDown(MODIFIER_PAIRS[event.key]) else 0x0)
 		return event.key, event.modifiers & cmask, event.isKeyDown(), event.isRepeatedEvent()
 
 	def __new__(sclass, event):
-		return super(KeyboardEvent, sclass).__new__(sclass, *sclass._parse_event(event))
+		return super(KeyboardEvent, sclass).__new__(sclass, *sclass._parseEvent(event))
 
 class ShortcutHandle(collections.namedtuple('ShortcutHandle', ('switch', 'pushed'))):
 	__slots__ = ()
@@ -82,21 +82,21 @@ class ShortcutHandle(collections.namedtuple('ShortcutHandle', ('switch', 'pushed
 class Shortcut(collections.namedtuple('Shortcut', ('key', 'modifiers', 'switch', 'invert', 'repeat'))):
 	__slots__ = ()
 
-	sequence = property(lambda self: self._build_sequence(self.key, self.modifiers))
+	sequence = property(lambda self: self._buildSequence(self.key, self.modifiers))
 
 	@staticmethod
-	def _build_sequence(key, modifiers):
-		def _get_alias(key):
+	def _buildSequence(key, modifiers):
+		def _getAlias(key):
 			alias = 'KEY_' + BigWorld.keyToString(key)
 			if getattr(Keys, alias, None) is None:
 				raise LookupError('Key could not be recognized.')
 			return alias
-		return '+'.join(itertools.imap(_get_alias, itertools.chain(
+		return '+'.join(itertools.imap(_getAlias, itertools.chain(
 			(MODIFIER_FLAG2KEY[flag][0] for flag in MODIFIER_FLAGS if modifiers & flag), (key, )
 		)))
 
 	@staticmethod
-	def _parse_sequence(sequence):
+	def _parseSequence(sequence):
 		sequence = map(lambda alias: getattr(Keys, alias, None), sequence.split('+'))
 		if None in sequence:
 			raise LookupError('One or more keys could not be recognized.')
@@ -109,7 +109,7 @@ class Shortcut(collections.namedtuple('Shortcut', ('key', 'modifiers', 'switch',
 		)
 
 	def __new__(sclass, sequence, switch=True, invert=False, repeat=False):
-		return super(Shortcut, sclass).__new__(sclass, *sclass._parse_sequence(sequence), switch=switch, invert=invert, repeat=repeat)
+		return super(Shortcut, sclass).__new__(sclass, *sclass._parseSequence(sequence), switch=switch, invert=invert, repeat=repeat)
 
 	def __call__(self, kbevent):
 		if kbevent.key == self.key and kbevent.modifiers == self.modifiers and (not kbevent.repeat or self.repeat):
