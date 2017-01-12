@@ -3,7 +3,7 @@
 # *************************
 # Python
 # *************************
-# Nothing
+import itertools
 
 # *************************
 # BigWorld
@@ -24,78 +24,77 @@ from . import VehicleBounds
 from . import CollisionUtils
 from . import AnalyticGeometry
 
-class XRayScanner(object):
-	@classmethod
-	def scanTarget(sclass, scanStart, scanStop, entities, skipGun=False):
+class _TargetScanner(object):
+	__slots__ = ('__weakref__', )
+
+	@staticmethod
+	def _getScanRayAndPoint(maxDistance):
+		scanDir, scanStart = AvatarInputHandler.cameras.getWorldRayAndPoint(*BigWorld.player().inputHandler.ctrl._aimOffset)
+		scanStop = scanStart + MathUtils.getNormalisedVector(scanDir).scale(maxDistance)
+		return scanStart, scanStop
+
+class XRayScanner(_TargetScanner):
+	__slots__ = ()
+
+	def scanTarget(self, scanStart, scanStop, entities, skipGun=False):
 		scanResult = CollisionUtils.collideVehicles(entities, scanStart, scanStop, skipGun)
 		return scanResult[1] if scanResult is not None else None
 
-	@classmethod
-	def getTarget(sclass, filterID=None, filterVehicle=None, maxDistance=720.0, skipGun=False, skipPlayer=True, entities=None):
-		scanDir, scanStart = AvatarInputHandler.cameras.getWorldRayAndPoint(*BigWorld.player().inputHandler.ctrl._aimOffset)
-		scanDir.normalise()
-		scanStop = scanStart + scanDir * maxDistance
-		return sclass.scanTarget(
-			scanStart,
-			scanStop,
-			CollisionUtils.getVisibleVehicles(filterID, filterVehicle, skipPlayer) if entities is None else entities,
-			skipGun
-		)
+	def getTarget(self, filterID=None, filterVehicle=None, maxDistance=720.0, skipGun=False, skipPlayer=True, entities=None):
+		scanStart, scanStop = self._getScanRayAndPoint(maxDistance)
+		if entities is None:
+			entities = CollisionUtils.getVisibleVehicles(filterID, filterVehicle, skipPlayer)
+		return self.scanTarget(scanStart, scanStop, entities, skipGun)
 
-class BoundingScanner(object):
+class _BoundingScanner(_TargetScanner):
+	__slots__ = ()
+
 	@staticmethod
-	def getVehicleBounds(entity):
+	def _getVehicleBounds(entity):
 		return getattr(entity, 'collisionBounds', None) or VehicleBounds.getVehicleBoundsMatrixProvider(entity)
 
 	@staticmethod
-	def getScaleMatrix(scalar=1.0):
+	def _getScaleMatrix(scalar=1.0):
 		scaleMatrix = MathUtils.getScaleMatrix(Math.Vector3(1.0, 1.0, 1.0).scale(scalar))
 		scaleMatrix.postMultiply(MathUtils.getTranslationMatrix(Math.Vector3(-0.5, -0.5, -0.5).scale(scalar - 1.0)))
 		return scaleMatrix
 
-	@classmethod
-	def scanTargets(sclass, scanStart, scanStop, entities, scalar=1.0):
+	def scanTargets(self, scanStart, scanStop, entities, scalar=1.0):
 		raise NotImplementedError
 		return
 
-	@classmethod
-	def scanTarget(sclass, scanStart, scanStop, entities, scalar=1.0):
-		targets = sclass.scanTargets(scanStart, scanStop, entities, scalar)
+	def scanTarget(self, scanStart, scanStop, entities, scalar=1.0):
+		targets = self.scanTargets(scanStart, scanStop, entities, scalar)
 		return targets[0] if len(targets) == 1 else None
 
-	@classmethod
-	def getTargets(sclass, filterID=None, filterVehicle=None, maxDistance=720.0, scalar=1.0, skipPlayer=True, entities=None):
-		scanDir, scanStart = AvatarInputHandler.cameras.getWorldRayAndPoint(*BigWorld.player().inputHandler.ctrl._aimOffset)
-		scanDir.normalise()
-		scanStop = scanStart + scanDir * maxDistance
-		return sclass.scanTargets(
-			scanStart,
-			scanStop,
-			CollisionUtils.getVisibleVehicles(filterID, filterVehicle, skipPlayer) if entities is None else entities,
-			scalar
-		)
+	def getTargets(self, filterID=None, filterVehicle=None, maxDistance=720.0, scalar=1.0, skipPlayer=True, entities=None):
+		scanStart, scanStop = self._getScanRayAndPoint(maxDistance)
+		if entities is None:
+			entities = CollisionUtils.getVisibleVehicles(filterID, filterVehicle, skipPlayer)
+		return self.scanTargets(scanStart, scanStop, entities, scalar)
 
-	@classmethod
-	def getTarget(sclass, filterID=None, filterVehicle=None, maxDistance=720.0, scalar=1.0, skipPlayer=True, entities=None):
-		targets = sclass.getTargets(filterID, filterVehicle, maxDistance, scalar, skipPlayer, entities)
+	def getTarget(self, filterID=None, filterVehicle=None, maxDistance=720.0, scalar=1.0, skipPlayer=True, entities=None):
+		targets = self.getTargets(filterID, filterVehicle, maxDistance, scalar, skipPlayer, entities)
 		return targets[0] if len(targets) == 1 else None
 
-class BBoxScanner(BoundingScanner):
-	@classmethod
-	def scanTargets(sclass, scanStart, scanStop, entities, scalar=1.0):
-		scaleMatrix = sclass.getScaleMatrix(scalar)
-		matrixBoundingBox = AnalyticGeometry.MatrixBoundingBox(MathUtils.getIdentityMatrix())
-		def checkEntity(entity):
-			matrixBoundingBox.iBounds = Math.MatrixInverse(MathUtils.getMatrixProduct(scaleMatrix, sclass.getVehicleBounds(entity)))
-			return matrixBoundingBox.collisionSegment(scanStart, scanStop)
-		return filter(checkEntity, entities)
+class BBoxScanner(_BoundingScanner):
+	__slots__ = ()
 
-class BEllipseScanner(BoundingScanner):
-	@classmethod
-	def scanTargets(sclass, scanStart, scanStop, entities, scalar=1.0):
-		scaleMatrix = sclass.getScaleMatrix(scalar)
-		matrixBoundingEllipse = AnalyticGeometry.MatrixBoundingEllipse(MathUtils.getIdentityMatrix())
+	def scanTargets(self, scanStart, scanStop, entities, scalar=1.0):
+		scaleMatrix = self._getScaleMatrix(scalar)
+		matrixAdapter = AnalyticGeometry.BoundingBoxMatrixAdapter()
 		def checkEntity(entity):
-			matrixBoundingEllipse.iBounds = Math.MatrixInverse(MathUtils.getMatrixProduct(scaleMatrix, sclass.getVehicleBounds(entity)))
-			return matrixBoundingEllipse.collisionSegment(scanStart, scanStop)
-		return filter(checkEntity, entities)
+			matrixAdapter.invBounds = Math.MatrixInverse(MathUtils.getMatrixProduct(scaleMatrix, self._getVehicleBounds(entity)))
+			return matrixAdapter.collisionSegment(scanStart, scanStop)
+		return list(itertools.ifilter(checkEntity, entities))
+
+class BEllipseScanner(_BoundingScanner):
+	__slots__ = ()
+
+	def scanTargets(self, scanStart, scanStop, entities, scalar=1.0):
+		scaleMatrix = self._getScaleMatrix(scalar)
+		matrixAdapter = AnalyticGeometry.BoundingSphereMatrixAdapter()
+		def checkEntity(entity):
+			matrixAdapter.invBounds = Math.MatrixInverse(MathUtils.getMatrixProduct(scaleMatrix, self._getVehicleBounds(entity)))
+			return matrixAdapter.collisionSegment(scanStart, scanStop)
+		return list(itertools.ifilter(checkEntity, entities))

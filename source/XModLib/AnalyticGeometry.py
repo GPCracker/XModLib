@@ -4,6 +4,8 @@
 # Python
 # *************************
 import math
+import operator
+import itertools
 
 # *************************
 # BigWorld
@@ -21,8 +23,8 @@ import BigWorld
 # *************************
 from . import MathUtils
 
-class Plane(object):
-	__slots__ = ('__weakref__', 'point', 'normal')
+class Plane(tuple):
+	__slots__ = ()
 
 	@classmethod
 	def getXYPlane(sclass):
@@ -37,81 +39,84 @@ class Plane(object):
 		return sclass(Math.Vector3(0.0, 0.0, 0.0), Math.Vector3(1.0, 0.0, 0.0))
 
 	@classmethod
-	def new_a(sclass, point0, normal0):
+	def newA(sclass, point0, normal0):
 		if not isinstance(point0, Math.Vector3):
-			raise TypeError('"point0" must be an instance of Math.Vector3 class.')
+			raise TypeError('point0 must be an instance of Math.Vector3 class.')
 		if not isinstance(normal0, Math.Vector3):
-			raise TypeError('"normal0" must be an instance of Math.Vector3 class.')
+			raise TypeError('normal0 must be an instance of Math.Vector3 class.')
 		return sclass(point0, normal0)
 
 	@classmethod
-	def new_b(sclass, point0, vector0, vector1):
+	def newB(sclass, point0, vector0, vector1):
 		if not isinstance(point0, Math.Vector3):
-			raise TypeError('"point0" must be an instance of Math.Vector3 class.')
+			raise TypeError('point0 must be an instance of Math.Vector3 class.')
 		if not isinstance(vector0, Math.Vector3):
-			raise TypeError('"vector0" must be an instance of Math.Vector3 class.')
+			raise TypeError('vector0 must be an instance of Math.Vector3 class.')
 		if not isinstance(vector1, Math.Vector3):
-			raise TypeError('"vector1" must be an instance of Math.Vector3 class.')
+			raise TypeError('vector1 must be an instance of Math.Vector3 class.')
 		return sclass(point0, vector0 * vector1)
 
 	@classmethod
-	def new_c(sclass, point0, point1, point2):
+	def newC(sclass, point0, point1, point2):
 		if not isinstance(point0, Math.Vector3):
-			raise TypeError('"point0" must be an instance of Math.Vector3 class.')
+			raise TypeError('point0 must be an instance of Math.Vector3 class.')
 		if not isinstance(point1, Math.Vector3):
-			raise TypeError('"point1" must be an instance of Math.Vector3 class.')
+			raise TypeError('point1 must be an instance of Math.Vector3 class.')
 		if not isinstance(point2, Math.Vector3):
-			raise TypeError('"point2" must be an instance of Math.Vector3 class.')
+			raise TypeError('point2 must be an instance of Math.Vector3 class.')
 		return sclass(point0, (point1 - point0) * (point2 - point0))
 
-	def __init__(self, point, normal):
-		self.point = Math.Vector3(point)
-		self.normal = Math.Vector3(normal)
-		if not self.normal.lengthSquared:
-			raise RuntimeError('Normal must be non-zero length.')
-		self.normal.normalise()
-		return
+	def __new__(sclass, point, normal):
+		if not normal.lengthSquared:
+			raise RuntimeError('normal must be a vector with non-zero length.')
+		return super(Plane, sclass).__new__(sclass, (Math.Vector3(point), MathUtils.getNormalisedVector(normal)))
+
+	point = property(operator.itemgetter(0))
+	normal = property(operator.itemgetter(1))
+
+	def __repr__(self):
+		return '{}(point={!r}, normal={!r})'.format(self.__class__.__name__, self.point, self.normal)
 
 	def isPointOnPlane(self, point):
 		if not isinstance(point, Math.Vector3):
-			raise TypeError('"point" must be an instance of Math.Vector3 class.')
+			raise TypeError('point must be an instance of Math.Vector3 class.')
 		return not self.normal.dot(point - self.point)
 
 	def isVectorParallelPlane(self, vector):
 		if not isinstance(vector, Math.Vector3):
-			raise TypeError('"vector" must be an instance of Math.Vector3 class.')
+			raise TypeError('vector must be an instance of Math.Vector3 class.')
 		return not self.normal.dot(vector)
 
 	def intersectRay(self, point, vector):
 		if not isinstance(point, Math.Vector3):
-			raise TypeError('"point" must be an instance of Math.Vector3 class.')
+			raise TypeError('point must be an instance of Math.Vector3 class.')
 		if not isinstance(vector, Math.Vector3):
-			raise TypeError('"vector" must be an instance of Math.Vector3 class.')
-		dot1 = self.normal.dot(vector)
-		return point + vector.scale(self.normal.dot(self.point - point) / dot1) if dot1 else None
+			raise TypeError('vector must be an instance of Math.Vector3 class.')
+		dotnv = self.normal.dot(vector)
+		return point + vector.scale(self.normal.dot(self.point - point) / dotnv) if dotnv else None
 
 	def projectPoint(self, point):
 		return self.intersectRay(point, self.normal)
 
 	def intersectSegment(self, point0, point1):
 		if not isinstance(point0, Math.Vector3):
-			raise TypeError('"point0" must be an instance of Math.Vector3 class.')
+			raise TypeError('point0 must be an instance of Math.Vector3 class.')
 		if not isinstance(point1, Math.Vector3):
-			raise TypeError('"point1" must be an instance of Math.Vector3 class.')
+			raise TypeError('point1 must be an instance of Math.Vector3 class.')
 		vector = point1 - point0
 		result = self.intersectRay(point0, vector)
 		return result if result is not None and result.distSqrTo(point0) <= vector.lengthSquared >= result.distSqrTo(point1) else None
 
 	def isPlaneParallel(self, plane):
-		if not isinstance(plane, Plane):
-			raise TypeError('"plane" must be an instance of Plane class.')
+		if not isinstance(plane, self.__class__):
+			raise TypeError('plane must be an instance of {} class.'.format(self.__class__.__name__))
 		return not (self.normal * plane.normal).lengthSquared
 
 	def intersectPlanes(self, plane0, plane1):
-		if not isinstance(plane0, Plane):
-			raise TypeError('"plane0" must be an instance of Plane class.')
-		if not isinstance(plane1, Plane):
-			raise TypeError('"plane1" must be an instance of Plane class.')
+		if not isinstance(plane0, self.__class__):
+			raise TypeError('plane0 must be an instance of {} class.'.format(self.__class__.__name__))
+		if not isinstance(plane1, self.__class__):
+			raise TypeError('plane1 must be an instance of {} class.'.format(self.__class__.__name__))
 		A = Math.Matrix()
 		A.setElement(0, 0, self.normal[0])
 		A.setElement(0, 1, self.normal[1])
@@ -133,394 +138,313 @@ class Plane(object):
 		return Math.Vector3(A.get(0, 0), A.get(1, 0), A.get(2, 0))
 
 	def intersectPlane(self, plane):
-		if not isinstance(plane, Plane):
-			raise TypeError('"plane" must be an instance of Plane class.')
+		if not isinstance(plane, self.__class__):
+			raise TypeError('plane must be an instance of {} class.'.format(self.__class__.__name__))
 		vector = self.normal * plane.normal
-		if vector.lengthSquared:
-			return self.intersectPlanes(plane, Plane(self.point, vector)), vector
-		return None
+		return (self.intersectPlanes(plane, self.__class__(self.point, vector)), vector) if vector.lengthSquared else None
+
+class _AxisAlignedBoundingBox(tuple):
+	__slots__ = ()
+
+	def __new__(sclass, point0, point1):
+		if not isinstance(point0, Math.Vector3):
+			raise TypeError('point0 must be an instance of Math.Vector3 class.')
+		if not isinstance(point1, Math.Vector3):
+			raise TypeError('point1 must be an instance of Math.Vector3 class.')
+		point0 = Math.Vector3(min([point0.x, point1.x]), min([point0.y, point1.y]), min([point0.z, point1.z]))
+		point1 = Math.Vector3(max([point0.x, point1.x]), max([point0.y, point1.y]), max([point0.z, point1.z]))
+		if not all((point1 - point0).tuple()):
+			raise RuntimeError('BoundingBox must have non-zero volume.')
+		return super(_AxisAlignedBoundingBox, sclass).__new__(sclass, (point0, point1))
+
+	point0 = property(operator.itemgetter(0))
+	point1 = property(operator.itemgetter(1))
 
 	def __repr__(self):
-		return '{}(point={!r}, normal={!r})'.format(self.__class__.__name__, self.point, self.normal)
-
-	def __del__(self):
-		return
-
-class BaseBoundingBox(object):
-	__slots__ = ('__weakref__', '_point0', '_point1')
-
-	def __init__(self, point0, point1):
-		self._point0 = Math.Vector3(min([point0.x, point1.x]), min([point0.y, point1.y]), min([point0.z, point1.z]))
-		self._point1 = Math.Vector3(max([point0.x, point1.x]), max([point0.y, point1.y]), max([point0.z, point1.z]))
-		size = self._point1 - self._point0
-		if size.x == 0 or size.y == 0 or size.z == 0:
-			raise RuntimeError('Box must be non-zero volume.')
-		return
+		return '{}(point0={!r}, point1={!r})'.format(self.__class__.__name__, self.point0, self.point1)
 
 	def _isPointInsideBox(self, point):
-		if not isinstance(point, Math.Vector3):
-			raise TypeError('"point" must be an instance of Math.Vector3 class.')
-		return self._point0.x <= point.x <= self._point1.x and self._point0.y <= point.y <= self._point1.y and self._point0.z <= point.z <= self._point1.z
+		return all(
+			self.point0.x <= point.x <= self.point1.x,
+			self.point0.y <= point.y <= self.point1.y,
+			self.point0.z <= point.z <= self.point1.z
+		)
 
-	def _intersectFractions(self, point, vector):
-		## Warning!!! ZeroDivizion, 'inf', NaN and other divide shit should be fixed before real usage!
-		copysign = lambda target, dividend, divider: math.copysign(target, dividend) * math.copysign(1.0, divider)
-		fx0 = (self._point0.x - point.x) / vector.x if vector.x != 0.0 else copysign(float('inf'), self._point0.x - point.x, vector.x)
-		fx1 = (self._point1.x - point.x) / vector.x if vector.x != 0.0 else copysign(float('inf'), self._point1.x - point.x, vector.x)
-		fy0 = (self._point0.y - point.y) / vector.y if vector.y != 0.0 else copysign(float('inf'), self._point0.y - point.y, vector.y)
-		fy1 = (self._point1.y - point.y) / vector.y if vector.y != 0.0 else copysign(float('inf'), self._point1.y - point.y, vector.y)
-		fz0 = (self._point0.z - point.z) / vector.z if vector.z != 0.0 else copysign(float('inf'), self._point0.z - point.z, vector.z)
-		fz1 = (self._point1.z - point.z) / vector.z if vector.z != 0.0 else copysign(float('inf'), self._point1.z - point.z, vector.z)
-		fx, fy, fz = [fx0, fx1], [fy0, fy1], [fz0, fz1]
-		fl = max([min(fx), min(fy), min(fz)])
-		fh = min([max(fx), max(fy), max(fz)])
-		return fl, fh
+	def _intersectFractions(self, point, vector, within):
+		copysign = lambda target, dividend, divider: math.copysign(target, math.copysign(1.0, dividend) * math.copysign(1.0, divider))
+		fx0 = (self.point0.x - point.x) / vector.x if vector.x != 0.0 else copysign(float('inf'), self.point0.x - point.x, vector.x)
+		fx1 = (self.point1.x - point.x) / vector.x if vector.x != 0.0 else copysign(float('inf'), self.point1.x - point.x, vector.x)
+		fy0 = (self.point0.y - point.y) / vector.y if vector.y != 0.0 else copysign(float('inf'), self.point0.y - point.y, vector.y)
+		fy1 = (self.point1.y - point.y) / vector.y if vector.y != 0.0 else copysign(float('inf'), self.point1.y - point.y, vector.y)
+		fz0 = (self.point0.z - point.z) / vector.z if vector.z != 0.0 else copysign(float('inf'), self.point0.z - point.z, vector.z)
+		fz1 = (self.point1.z - point.z) / vector.z if vector.z != 0.0 else copysign(float('inf'), self.point1.z - point.z, vector.z)
+		fx, fy, fz = (fx0, fx1), (fy0, fy1), (fz0, fz1)
+		frlow, frhigh = max(min(fx), min(fy), min(fz)), min(max(fx), max(fy), max(fz))
+		if frlow <= frhigh:
+			return tuple(fraction for fraction in (frlow, frhigh) if 0.0 <= fraction <= 1.0) if within else (frlow, frhigh)
+		return None
 
 	def _intersectRay(self, point, vector, nearest=True):
-		if not isinstance(point, Math.Vector3):
-			raise TypeError('"point" must be an instance of Math.Vector3 class.')
-		if not isinstance(vector, Math.Vector3):
-			raise TypeError('"vector" must be an instance of Math.Vector3 class.')
-		fl, fh = self._intersectFractions(point, vector)
-		if fl <= fh:
-			result = [point + vector * fl, point + vector * fh]
-			return min(result, key=lambda ipoint: ipoint.distSqrTo(point)) if nearest else result
+		fractions = self._intersectFractions(point, vector, within=False)
+		if fractions:
+			result = tuple(itertools.imap(lambda fraction: point + vector.scale(fraction), fractions))
+			return min(result, key=point.distSqrTo) if nearest else result
 		return None
 
 	def _intersectSegment(self, point0, point1, nearest=True):
-		if not isinstance(point0, Math.Vector3):
-			raise TypeError('"point0" must be an instance of Math.Vector3 class.')
-		if not isinstance(point1, Math.Vector3):
-			raise TypeError('"point1" must be an instance of Math.Vector3 class.')
 		vector = point1 - point0
-		fl, fh = self._intersectFractions(point0, vector)
-		if fl <= fh:
-			result = filter(lambda ipoint: ipoint.distSqrTo(point0) < vector.lengthSquared > ipoint.distSqrTo(point1), [point0 + vector * fl, point0 + vector * fh])
-			if result:
-				return min(result, key=lambda ipoint: ipoint.distSqrTo(point0)) if nearest else result
+		fractions = self._intersectFractions(point0, vector, within=True)
+		if fractions:
+			result = tuple(itertools.imap(lambda fraction: point0 + vector.scale(fraction), fractions))
+			return min(result, key=point0.distSqrTo) if nearest else result
 		return None
 
 	def _collisionRay(self, point, vector):
-		if not isinstance(point, Math.Vector3):
-			raise TypeError('"point" must be an instance of Math.Vector3 class.')
-		if not isinstance(vector, Math.Vector3):
-			raise TypeError('"vector" must be an instance of Math.Vector3 class.')
-		fl, fh = self._intersectFractions(point, vector)
-		return fl <= fh
+		return bool(self._intersectFractions(point, vector, within=False))
 
 	def _collisionSegment(self, point0, point1):
-		if not isinstance(point0, Math.Vector3):
-			raise TypeError('"point0" must be an instance of Math.Vector3 class.')
-		if not isinstance(point1, Math.Vector3):
-			raise TypeError('"point1" must be an instance of Math.Vector3 class.')
-		vector = point1 - point0
-		fl, fh = self._intersectFractions(point0, vector)
-		return fl <= fh and (0.0 <= fl <= 1.0 or 0.0 <= fh <= 1.0)
+		return bool(self._intersectFractions(point0, point1 - point0, within=True))
 
 	def _orthClampPoint(self, point):
-		if not isinstance(point, Math.Vector3):
-			raise TypeError('"point" must be an instance of Math.Vector3 class.')
-		return Math.Vector3(min(self._point1.x, max(self._point0.x, point.x)), min(self._point1.y, max(self._point0.y, point.y)), min(self._point1.z, max(self._point0.z, point.z)))
+		return Math.Vector3(
+			min(max(self.point0.x, point.x), self.point1.x),
+			min(max(self.point0.y, point.y), self.point1.y),
+			min(max(self.point0.z, point.z), self.point1.z)
+		)
 
 	def _projClampPoint(self, point):
+		return self._intersectSegment(self.point0 + (self.point1 - self.point0).scale(0.5), point) or point
+
+	def isPointInsideBox(self, point):
 		if not isinstance(point, Math.Vector3):
-			raise TypeError('"point" must be an instance of Math.Vector3 class.')
-		return self._intersectSegment(self._point0 + (self._point1 - self._point0).scale(0.5), point) or point
+			raise TypeError('point must be an instance of Math.Vector3 class.')
+		return self._isPointInsideBox(point)
 
-	def __repr__(self):
-		return '{}(point0={!r}, point1={!r})'.format(self.__class__.__name__, self._point0, self._point1)
+	def intersectRay(self, point, vector, nearest=True):
+		if not isinstance(point, Math.Vector3):
+			raise TypeError('point must be an instance of Math.Vector3 class.')
+		if not isinstance(vector, Math.Vector3):
+			raise TypeError('vector must be an instance of Math.Vector3 class.')
+		return self._intersectRay(point, vector, nearest)
 
-	def __del__(self):
-		return
+	def intersectSegment(self, point0, point1, nearest=True):
+		if not isinstance(point0, Math.Vector3):
+			raise TypeError('point0 must be an instance of Math.Vector3 class.')
+		if not isinstance(point1, Math.Vector3):
+			raise TypeError('point1 must be an instance of Math.Vector3 class.')
+		return self._intersectSegment(point0, point1, nearest)
 
-class AxisAlignedBoundingBox(BaseBoundingBox):
+	def collisionRay(self, point, vector):
+		if not isinstance(point, Math.Vector3):
+			raise TypeError('point must be an instance of Math.Vector3 class.')
+		if not isinstance(vector, Math.Vector3):
+			raise TypeError('vector must be an instance of Math.Vector3 class.')
+		return self._collisionRay(point, vector)
+
+	def collisionSegment(self, point0, point1):
+		if not isinstance(point0, Math.Vector3):
+			raise TypeError('point0 must be an instance of Math.Vector3 class.')
+		if not isinstance(point1, Math.Vector3):
+			raise TypeError('point1 must be an instance of Math.Vector3 class.')
+		return self._collisionSegment(point0, point1)
+
+	def orthClampPoint(self, point):
+		if not isinstance(point, Math.Vector3):
+			raise TypeError('point must be an instance of Math.Vector3 class.')
+		return self._orthClampPoint(point)
+
+	def projClampPoint(self, point):
+		if not isinstance(point, Math.Vector3):
+			raise TypeError('point must be an instance of Math.Vector3 class.')
+		return self._projClampPoint(point)
+
+class AxisAlignedBoundingBox(_AxisAlignedBoundingBox):
 	__slots__ = ()
 
 	@classmethod
-	def constructBoundingBox(sclass, bounds, heightLimits):
-		return sclass(Math.Vector3(bounds[0][0], heightLimits[0], bounds[0][1]), Math.Vector3(bounds[1][0], heightLimits[1], bounds[1][1]))
+	def construct(sclass, flatBounds, heightLimits=(-500.0, 500.0)):
+		return sclass(
+			Math.Vector3(flatBounds[0][0], heightLimits[0], flatBounds[0][1]),
+			Math.Vector3(flatBounds[1][0], heightLimits[1], flatBounds[1][1])
+		)
 
 	@classmethod
 	def getSpaceBoundingBox(sclass):
-		spaceBounds = BigWorld.wg_getSpaceBounds()
-		return sclass.constructBoundingBox(((vspaceBounds.x, spaceBounds.y), (spaceBounds.z, spaceBounds.w)), (-500.0, 500.0))
+		bounds = BigWorld.wg_getSpaceBounds().tuple()
+		return sclass.construct((bounds[0:2], bounds[2:4]))
 
 	@classmethod
 	def getArenaBoundingBox(sclass):
-		return sclass.constructBoundingBox(BigWorld.player().arena.arenaType.boundingBox, (-500.0, 500.0))
+		return sclass.construct(BigWorld.player().arena.arenaType.boundingBox)
 
-	@classmethod
-	def new(sclass, point0, point1):
-		if not isinstance(point0, Math.Vector3):
-			raise TypeError('"point0" must be an instance of Math.Vector3 class.')
-		if not isinstance(point1, Math.Vector3):
-			raise TypeError('"point1" must be an instance of Math.Vector3 class.')
-		return sclass(point0, point1)
-
-	@property
-	def point0(self):
-		return self._point0
-
-	@property
-	def point1(self):
-		return self._point1
-
-	def isPointInsideBox(self, point):
-		return self._isPointInsideBox(point)
-
-	def intersectRay(self, point, vector, nearest=True):
-		return self._intersectRay(point, vector, nearest)
-
-	def intersectSegment(self, point0, point1, nearest=True):
-		return self._intersectSegment(point0, point1, nearest)
-
-	def collisionRay(self, point, vector):
-		return self._collisionRay(point, vector)
-
-	def collisionSegment(self, point0, point1):
-		return self._collisionSegment(point0, point1)
-
-	def orthClampPoint(self, point):
-		return self._orthClampPoint(point)
-
-	def projClampPoint(self, point):
-		return self._projClampPoint(point)
-
-	def __repr__(self):
-		return '{}(point0={!r}, point1={!r})'.format(self.__class__.__name__, self._point0, self._point1)
-
-class UnitBoundingBox(BaseBoundingBox):
+class UnitBoundingBox(_AxisAlignedBoundingBox):
 	__slots__ = ()
 
-	POINT_0 = Math.Vector3(0.0, 0.0, 0.0)
-	POINT_1 = Math.Vector3(1.0, 1.0, 1.0)
-
-	def __init__(self):
-		super(UnitBoundingBox, self).__init__(self.POINT_0, self.POINT_1)
-		return
-
-	def isPointInsideBox(self, point):
-		return self._isPointInsideBox(point)
-
-	def intersectRay(self, point, vector, nearest=True):
-		return self._intersectRay(point, vector, nearest)
-
-	def intersectSegment(self, point0, point1, nearest=True):
-		return self._intersectSegment(point0, point1, nearest)
-
-	def collisionRay(self, point, vector):
-		return self._collisionRay(point, vector)
-
-	def collisionSegment(self, point0, point1):
-		return self._collisionSegment(point0, point1)
-
-	def orthClampPoint(self, point):
-		return self._orthClampPoint(point)
-
-	def projClampPoint(self, point):
-		return self._projClampPoint(point)
+	def __new__(sclass):
+		return super(UnitBoundingBox, sclass).__new__(sclass, Math.Vector3(0.0, 0.0, 0.0), Math.Vector3(1.0, 1.0, 1.0))
 
 	def __repr__(self):
 		return '{}()'.format(self.__class__.__name__)
 
-class MatrixBoundingBox(UnitBoundingBox):
-	__slots__ = ('iBounds', )
+class BoundingBoxMatrixAdapter(object):
+	__slots__ = ('__weakref__', 'invBounds', 'boundingBox')
 
-	@classmethod
-	def new(sclass, iBounds=None):
-		return sclass(iBounds if iBounds is not None else MathUtils.getIdentityMatrix())
-
-	def __init__(self, iBounds):
-		super(MatrixBoundingBox, self).__init__()
-		self.iBounds = iBounds
+	def __init__(self, invBounds=None, boundingBox=None):
+		super(BoundingBoxMatrixAdapter, self).__init__()
+		self.invBounds = invBounds if invBounds is not None else MathUtils.getIdentityMatrix()
+		self.boundingBox = boundingBox if boundingBox is not None else UnitBoundingBox()
 		return
+
+	def __repr__(self):
+		return '{}(invBounds={!r}, boundingBox={!r})'.format(self.__class__.__name__, self.invBounds, self.boundingBox)
 
 	def isPointInsideBox(self, point):
 		if not isinstance(point, Math.Vector3):
-			raise TypeError('"point" must be an instance of Math.Vector3 class.')
-		return super(MatrixBoundingBox, self).isPointInsideBox(Math.Matrix(self.iBounds).applyPoint(point))
+			raise TypeError('point must be an instance of Math.Vector3 class.')
+		return self.boundingBox._isPointInsideBox(Math.Matrix(self.invBounds).applyPoint(point))
 
 	def intersectRay(self, point, vector, nearest=True):
 		if not isinstance(point, Math.Vector3):
-			raise TypeError('"point" must be an instance of Math.Vector3 class.')
+			raise TypeError('point must be an instance of Math.Vector3 class.')
 		if not isinstance(vector, Math.Vector3):
-			raise TypeError('"vector" must be an instance of Math.Vector3 class.')
-		iMatrix = Math.Matrix(self.iBounds)
-		nMatrix = MathUtils.getInvertedMatrix(iMatrix)
-		result = super(MatrixBoundingBox, self).intersectRay(iMatrix.applyPoint(point), iMatrix.applyVector(vector), nearest=nearest)
+			raise TypeError('vector must be an instance of Math.Vector3 class.')
+		srcMatrix = Math.Matrix(self.invBounds)
+		result = self.boundingBox._intersectRay(srcMatrix.applyPoint(point), srcMatrix.applyVector(vector), nearest)
 		if result is not None:
-			return nMatrix.applyPoint(result) if nearest else map(nMatrix.applyPoint, result)
+			resMatrix = MathUtils.getInvertedMatrix(srcMatrix)
+			return resMatrix.applyPoint(result) if nearest else tuple(itertools.imap(resMatrix.applyPoint, result))
 		return None
 
 	def intersectSegment(self, point0, point1, nearest=True):
 		if not isinstance(point0, Math.Vector3):
-			raise TypeError('"point0" must be an instance of Math.Vector3 class.')
+			raise TypeError('point0 must be an instance of Math.Vector3 class.')
 		if not isinstance(point1, Math.Vector3):
-			raise TypeError('"point1" must be an instance of Math.Vector3 class.')
-		iMatrix = Math.Matrix(self.iBounds)
-		nMatrix = MathUtils.getInvertedMatrix(iMatrix)
-		result = super(MatrixBoundingBox, self).intersectSegment(iMatrix.applyPoint(point0), iMatrix.applyPoint(point1), nearest=nearest)
+			raise TypeError('point1 must be an instance of Math.Vector3 class.')
+		srcMatrix = Math.Matrix(self.invBounds)
+		result = self.boundingBox._intersectSegment(srcMatrix.applyPoint(point0), srcMatrix.applyPoint(point1), nearest)
 		if result is not None:
-			return nMatrix.applyPoint(result) if nearest else map(nMatrix.applyPoint, result)
+			resMatrix = MathUtils.getInvertedMatrix(srcMatrix)
+			return resMatrix.applyPoint(result) if nearest else tuple(itertools.imap(resMatrix.applyPoint, result))
 		return None
 
 	def collisionRay(self, point, vector):
 		if not isinstance(point, Math.Vector3):
-			raise TypeError('"point" must be an instance of Math.Vector3 class.')
+			raise TypeError('point must be an instance of Math.Vector3 class.')
 		if not isinstance(vector, Math.Vector3):
-			raise TypeError('"vector" must be an instance of Math.Vector3 class.')
-		iMatrix = Math.Matrix(self.iBounds)
-		return super(MatrixBoundingBox, self).collisionRay(iMatrix.applyPoint(point), iMatrix.applyVector(vector))
+			raise TypeError('vector must be an instance of Math.Vector3 class.')
+		srcMatrix = Math.Matrix(self.invBounds)
+		return self.boundingBox._collisionRay(srcMatrix.applyPoint(point), srcMatrix.applyVector(vector))
 
 	def collisionSegment(self, point0, point1):
 		if not isinstance(point0, Math.Vector3):
-			raise TypeError('"point0" must be an instance of Math.Vector3 class.')
+			raise TypeError('point0 must be an instance of Math.Vector3 class.')
 		if not isinstance(point1, Math.Vector3):
-			raise TypeError('"point1" must be an instance of Math.Vector3 class.')
-		iMatrix = Math.Matrix(self.iBounds)
-		return super(MatrixBoundingBox, self).collisionSegment(iMatrix.applyPoint(point0), iMatrix.applyPoint(point1))
+			raise TypeError('point1 must be an instance of Math.Vector3 class.')
+		srcMatrix = Math.Matrix(self.invBounds)
+		return self.boundingBox._collisionSegment(srcMatrix.applyPoint(point0), srcMatrix.applyPoint(point1))
 
 	def orthClampPoint(self, point):
 		if not isinstance(point, Math.Vector3):
-			raise TypeError('"point" must be an instance of Math.Vector3 class.')
-		iMatrix = Math.Matrix(self.iBounds)
-		nMatrix = MathUtils.getInvertedMatrix(iMatrix)
-		return nMatrix.applyPoint(super(MatrixBoundingBox, self).orthClampPoint(iMatrix.applyPoint(point)))
+			raise TypeError('point must be an instance of Math.Vector3 class.')
+		srcMatrix = Math.Matrix(self.invBounds)
+		resMatrix = MathUtils.getInvertedMatrix(srcMatrix)
+		return resMatrix.applyPoint(self.boundingBox._orthClampPoint(srcMatrix.applyPoint(point)))
 
 	def projClampPoint(self, point):
 		if not isinstance(point, Math.Vector3):
-			raise TypeError('"point" must be an instance of Math.Vector3 class.')
-		iMatrix = Math.Matrix(self.iBounds)
-		nMatrix = MathUtils.getInvertedMatrix(iMatrix)
-		return nMatrix.applyPoint(super(MatrixBoundingBox, self).projClampPoint(iMatrix.applyPoint(point)))
+			raise TypeError('point must be an instance of Math.Vector3 class.')
+		srcMatrix = Math.Matrix(self.invBounds)
+		resMatrix = MathUtils.getInvertedMatrix(srcMatrix)
+		return resMatrix.applyPoint(self.boundingBox._projClampPoint(srcMatrix.applyPoint(point)))
+
+class BoundingSphere(tuple):
+	__slots__ = ()
+
+	def __new__(sclass, center, radius):
+		if not isinstance(center, Math.Vector3):
+			raise TypeError('center must be an instance of Math.Vector3 class.')
+		if not isinstance(radius, Math.Vector3):
+			raise TypeError('radius must be an instance of Math.Vector3 class.')
+		if not radius.lengthSquared:
+			raise RuntimeError('BoundingSphere must have non-zero radius.')
+		return super(BoundingSphere, sclass).__new__(sclass, (center, radius))
+
+	center = property(operator.itemgetter(0))
+	radius = property(operator.itemgetter(1))
 
 	def __repr__(self):
-		return '{}(iBounds={!r})'.format(self.__class__.__name__, self.iBounds)
-
-class BaseBoundingSphere(object):
-	__slots__ = ('__weakref__', '_center', '_radius')
-
-	def __init__(self, center, radius):
-		self._center = center
-		self._radius = radius
-		if not self._radius.lengthSquared:
-			raise ValueError('Radius must be non-zero length.')
-		return
+		return '{}(center={!r}, radius={!r})'.format(self.__class__.__name__, self.center, self.radius)
 
 	def _isPointInsideSphere(self, point):
-		if not isinstance(point, Math.Vector3):
-			raise TypeError('"point" must be an instance of Math.Vector3 class.')
-		return point.distSqrTo(self._center) <= self._radius.lengthSquared
+		return point.distSqrTo(self.center) <= self.radius.lengthSquared
 
 	def _collisionRay(self, point, vector):
-		if not isinstance(point, Math.Vector3):
-			raise TypeError('"point" must be an instance of Math.Vector3 class.')
-		if not isinstance(vector, Math.Vector3):
-			raise TypeError('"vector" must be an instance of Math.Vector3 class.')
-		return ((point - self._center) * vector).lengthSquared / vector.lengthSquared <= self._radius.lengthSquared
+		return ((point - self.center) * vector).lengthSquared / vector.lengthSquared <= self.radius.lengthSquared
 
 	def _collisionSegment(self, point0, point1):
-		if not isinstance(point0, Math.Vector3):
-			raise TypeError('"point0" must be an instance of Math.Vector3 class.')
-		if not isinstance(point1, Math.Vector3):
-			raise TypeError('"point1" must be an instance of Math.Vector3 class.')
 		vector = point1 - point0
 		if self._collisionRay(point0, vector):
 			simple = self._isPointInsideSphere(point0), self._isPointInsideSphere(point1)
-			return not all(simple) and (any(simple) or (self._center - point0).dot(vector) * (self._center - point1).dot(vector) <= 0.0)
+			return not all(simple) and (any(simple) or (self.center - point0).dot(vector) * (self.center - point1).dot(vector) <= 0.0)
 		return False
 
-	def __repr__(self):
-		return '{}(center={!r}, radius={!r})'.format(self.__class__.__name__, self._center, self._radius)
-
-	def __del__(self):
-		return
-
-class AxisAlignedBoundingSphere(BaseBoundingSphere):
-	__slots__ = ()
-
-	@classmethod
-	def new(sclass, center, radius):
-		if not isinstance(center, Math.Vector3):
-			raise TypeError('"center" must be an instance of Math.Vector3 class.')
-		if not isinstance(radius, Math.Vector3):
-			raise TypeError('"radius" must be an instance of Math.Vector3 class.')
-		return sclass(center, radius)
-
-	@property
-	def center(self):
-		return self._center
-
-	@property
-	def radius(self):
-		return self._radius
-
 	def isPointInsideSphere(self, point):
+		if not isinstance(point, Math.Vector3):
+			raise TypeError('point must be an instance of Math.Vector3 class.')
 		return self._isPointInsideSphere(point)
 
 	def collisionRay(self, point, vector):
+		if not isinstance(point, Math.Vector3):
+			raise TypeError('point must be an instance of Math.Vector3 class.')
+		if not isinstance(vector, Math.Vector3):
+			raise TypeError('vector must be an instance of Math.Vector3 class.')
 		return self._collisionRay(point, vector)
 
 	def collisionSegment(self, point0, point1):
+		if not isinstance(point0, Math.Vector3):
+			raise TypeError('point0 must be an instance of Math.Vector3 class.')
+		if not isinstance(point1, Math.Vector3):
+			raise TypeError('point1 must be an instance of Math.Vector3 class.')
 		return self._collisionSegment(point0, point1)
 
-	def __repr__(self):
-		return '{}(center={!r}, radius={!r})'.format(self.__class__.__name__, self._center, self._radius)
-
-class UnitBoundingSphere(BaseBoundingSphere):
+class UnitBoundingSphere(BoundingSphere):
 	__slots__ = ()
 
-	CENTER = Math.Vector3(0.5, 0.5, 0.5)
-	RADIUS = Math.Vector3(0.5, 0.5, 0.5)
-
-	def __init__(self):
-		super(UnitBoundingSphere, self).__init__(self.CENTER, self.RADIUS)
-		return
-
-	def isPointInsideSphere(self, point):
-		return self._isPointInsideSphere(point)
-
-	def collisionRay(self, point, vector):
-		return self._collisionRay(point, vector)
-
-	def collisionSegment(self, point0, point1):
-		return self._collisionSegment(point0, point1)
+	def __new__(sclass):
+		return super(UnitBoundingSphere, sclass).__new__(sclass, Math.Vector3(0.5, 0.5, 0.5), Math.Vector3(0.5, 0.5, 0.5))
 
 	def __repr__(self):
 		return '{}()'.format(self.__class__.__name__)
 
-class MatrixBoundingEllipse(UnitBoundingSphere):
-	__slots__ = ('iBounds', )
+class BoundingSphereMatrixAdapter(object):
+	__slots__ = ('__weakref__', 'invBounds', 'boundingSphere')
 
-	@classmethod
-	def new(sclass, iBounds=None):
-		return sclass(iBounds if iBounds is not None else MathUtils.getIdentityMatrix())
-
-	def __init__(self, iBounds):
-		super(MatrixBoundingEllipse, self).__init__()
-		self.iBounds = iBounds
+	def __init__(self, invBounds=None, boundingSphere=None):
+		super(BoundingSphereMatrixAdapter, self).__init__()
+		self.invBounds = invBounds if invBounds is not None else MathUtils.getIdentityMatrix()
+		self.boundingSphere = boundingSphere if boundingSphere is not None else UnitBoundingBox()
 		return
+
+	def __repr__(self):
+		return '{}(invBounds={!r}, boundingSphere={!r})'.format(self.__class__.__name__, self.invBounds, self.boundingSphere)
 
 	def isPointInsideSphere(self, point):
 		if not isinstance(point, Math.Vector3):
-			raise TypeError('"point" must be an instance of Math.Vector3 class.')
-		return super(MatrixBoundingEllipse, self).isPointInsideSphere(Math.Matrix(self.iBounds).applyPoint(point))
+			raise TypeError('point must be an instance of Math.Vector3 class.')
+		return self.boundingSphere._isPointInsideSphere(Math.Matrix(self.invBounds).applyPoint(point))
 
 	def collisionRay(self, point, vector):
 		if not isinstance(point, Math.Vector3):
-			raise TypeError('"point" must be an instance of Math.Vector3 class.')
+			raise TypeError('point must be an instance of Math.Vector3 class.')
 		if not isinstance(vector, Math.Vector3):
-			raise TypeError('"vector" must be an instance of Math.Vector3 class.')
-		iMatrix = Math.Matrix(self.iBounds)
-		return super(MatrixBoundingEllipse, self).collisionRay(iMatrix.applyPoint(point), iMatrix.applyVector(vector))
+			raise TypeError('vector must be an instance of Math.Vector3 class.')
+		srcMatrix = Math.Matrix(self.invBounds)
+		return self.boundingSphere._collisionRay(srcMatrix.applyPoint(point), srcMatrix.applyVector(vector))
 
 	def collisionSegment(self, point0, point1):
 		if not isinstance(point0, Math.Vector3):
-			raise TypeError('"point0" must be an instance of Math.Vector3 class.')
+			raise TypeError('point0 must be an instance of Math.Vector3 class.')
 		if not isinstance(point1, Math.Vector3):
-			raise TypeError('"point1" must be an instance of Math.Vector3 class.')
-		iMatrix = Math.Matrix(self.iBounds)
-		return super(MatrixBoundingEllipse, self).collisionSegment(iMatrix.applyPoint(point0), iMatrix.applyPoint(point1))
-
-	def __repr__(self):
-		return '{}(iBounds={!r})'.format(self.__class__.__name__, self.iBounds)
+			raise TypeError('point1 must be an instance of Math.Vector3 class.')
+		srcMatrix = Math.Matrix(self.invBounds)
+		return self.boundingSphere._collisionSegment(srcMatrix.applyPoint(point0), srcMatrix.applyPoint(point1))
