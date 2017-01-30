@@ -6,6 +6,7 @@
 import types
 import functools
 import traceback
+import collections
 
 # *************************
 # Python backports
@@ -55,6 +56,29 @@ class HookEvent(set):
 
 	def __call__(self, *args, **kwargs):
 		for delegate in self:
+			try:
+				delegate(*args, **kwargs)
+			except:
+				traceback.print_exc()
+		return
+
+class HookChain(collections.deque):
+	__slots__ = ()
+
+	def __iadd__(self, delegate):
+		if not callable(delegate):
+			return NotImplemented
+		self.appendleft(delegate)
+		return self
+
+	def __isub__(self, delegate):
+		if not callable(delegate):
+			return NotImplemented
+		self.remove(delegate)
+		return self
+
+	def __call__(self, *args, **kwargs):
+		for delegate in reversed(self):
 			try:
 				delegate(*args, **kwargs)
 			except:
