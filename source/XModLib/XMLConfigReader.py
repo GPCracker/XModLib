@@ -52,12 +52,12 @@ class XMLReaderMeta(object):
 	def _read_nested_section(self, xml_section, def_item):
 		return self.collection_proxy(xml_section, def_item)
 
-	def _read_section(self, xml_section, def_section):
+	def _read_section(self, xml_section, def_section, **kwargs):
 		raise NotImplementedError
 		return None
 
-	def __call__(self, xml_section, def_section):
-		return self._read_section(xml_section, def_section)
+	def __call__(self, xml_section, def_section, **kwargs):
+		return self._read_section(xml_section, def_section, **kwargs)
 
 	def __repr__(self):
 		return '{}(reader_name={!r}, collection_proxy={!r})'.format(type(self).__name__, self.reader_name, self.collection_proxy)
@@ -185,6 +185,21 @@ class OptionalDictXMLReaderMeta(XMLReaderMeta):
 			return {nested_name: self._read_nested_section(xml_section[nested_name], def_section[nested_name]) for nested_name in def_section.iterkeys() if nested_name in self.required_keys or xml_section[nested_name] is not None}
 		return {nested_name: self._read_nested_section(None, def_section[nested_name]) for nested_name in def_section.iterkeys() if nested_name in self.required_keys or nested_name in self.default_keys}
 
+class DataObjectXMLReaderMeta(XMLReaderMeta):
+	__slots__ = ()
+
+	@classmethod
+	def construct(sclass, class_name, constructor=None, section_type='String'):
+		constructor = staticmethod(constructor if constructor is not None else lambda data: data)
+		return sclass._construct_class(class_name, constructor=constructor, section_type=section_type)
+
+	def _read_section(self, xml_section, def_section, **kwargs):
+		if getattr(self, 'constructor', None) is None:
+			raise AttributeError('Constructor is undefined or None.')
+		if getattr(self, 'section_type', None) is None:
+			raise AttributeError('Section type is undefined or None.')
+		return self.constructor(self._read_nested_section(xml_section, (self.section_type, def_section)), **kwargs)
+
 class XMLReaderCollection(dict):
 	__slots__ = ('__weakref__', )
 
@@ -250,16 +265,22 @@ class XMLReaderCollection(dict):
 
 	def _parse_default_item(self, def_item):
 		if isinstance(def_item, dict):
-			return 'Dict', def_item
+			return 'Dict', def_item, dict()
 		if not isinstance(def_item, (list, tuple)):
-			raise TypeError('Invalid default config item type "{}".'.format(type(def_item).__name__))
-		return def_item
+			raise TypeError('Invalid default config item type.')
+		if len(def_item) == 3:
+			reader_name, def_section, kwargs = def_item
+		elif len(def_item) == 2:
+			(reader_name, def_section), kwargs = def_item, dict()
+		else:
+			raise ValueError('Invalid default config item length.')
+		return reader_name, def_section, kwargs
 
 	def __call__(self, xml_section, def_item):
-		reader_name, def_section = self._parse_default_item(def_item)
+		reader_name, def_section, kwargs = self._parse_default_item(def_item)
 		if xml_section is not None and xml_section.isAttribute:
 			xml_section = None
-		return self[reader_name](self._override_section(xml_section), def_section)
+		return self[reader_name](self._override_section(xml_section), def_section, **kwargs)
 
 	def __repr__(self):
 		return '{}:{}'.format(object.__repr__(self), super(XMLReaderCollection, self).__repr__())
