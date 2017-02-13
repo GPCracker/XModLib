@@ -22,12 +22,14 @@ import gui.shared.events
 from .TextPanelMeta import TextPanelMeta
 
 class TextPanel(TextPanelMeta):
-	CONFIG_APPLY_SKIP = ('text', )
+	@staticmethod
+	def _computeConfigPatch(update, base):
+		return {key: value for key, value in update.viewitems() - base.viewitems() if key in base}
 
 	def __init__(self, *args, **kwargs):
 		super(TextPanel, self).__init__(*args, **kwargs)
 		# Text panel flash default parameters.
-		self._config = {
+		self.__config = {
 			'alpha': 1.0,
 			'visible': True,
 			'background': '',
@@ -38,20 +40,12 @@ class TextPanel(TextPanelMeta):
 		}
 		return
 
-	@property
-	def config(self):
-		return self._config
-
-	@config.setter
-	def config(self, value):
-		self._config.update(value)
-		self.as_applyConfigS({key: value[key] for key in value if key not in self.CONFIG_APPLY_SKIP})
-		return
-
 	def py_onPanelDrag(self, x, y):
+		self.__config['position'] = (x, y)
 		return
 
 	def py_onPanelDrop(self, x, y):
+		self.__config['position'] = (x, y)
 		return
 
 	def _populate(self):
@@ -77,10 +71,19 @@ class TextPanel(TextPanelMeta):
 		return
 
 	def _handleChangeAppResolution(self, event):
-		ctx = event.ctx
-		self.as_changeAppResolutionS(ctx['width'], ctx['height'])
+		self.as_changeAppResolutionS(event.ctx['width'], event.ctx['height'])
+		return
+
+	def getConfig(self):
+		return self.__config.copy()
+
+	def updateConfig(self, config):
+		config = self._computeConfigPatch(config, self.__config)
+		self.__config.update(config)
+		self.as_applyConfigS(config)
 		return
 
 	def updateText(self, text):
+		self.__config['text'] = text
 		self.as_setTextS(text)
 		return
