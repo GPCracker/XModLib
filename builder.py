@@ -91,16 +91,18 @@ def compile_zipfile_string(src_data_blocks, src_bin_comment=''):
 		dst_bin_data = dst_bin_buffer.getvalue()
 	return dst_bin_data
 
-def acquire_version_data(vcs_filename):
-	vcs_str_data = '<custom_build>'
-	if os.path.isfile(vcs_filename):
-		with open(vcs_filename, 'r+b') as vcs_bin_buffer:
-			vcs_obj_data = json.load(vcs_bin_buffer)
-			vcs_str_data = '{release}#{next_build}'.format(**vcs_obj_data)
-			vcs_obj_data['next_build'] += 1
-			vcs_bin_buffer.seek(0)
-			vcs_bin_buffer.truncate()
-			vcs_bin_buffer.write(json.dumps(vcs_obj_data) + '\n')
+def acquire_version_data():
+	if os.name == 'posix':
+		git = 'git'
+	elif os.name == 'nt':
+		git = 'tools/git-scm/bin/git.exe'
+	else:
+		raise RuntimeError('Current operation system is not supported.')
+	args = [git, 'describe', '--match=v*', '--dirty']
+	git_process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+	vcs_str_data = git_process.communicate()[0].strip()
+	if git_process.poll():
+		vcs_str_data = '<unknown>'
 	return vcs_str_data
 
 def merge_dicts(base, *args, **kwargs):
@@ -180,11 +182,10 @@ if __name__ == '__main__':
 			g_config = json.loads(cfg_bin_buffer.read())
 		## Printing status.
 		print 'Build config file loaded.'
-		## Reading build version.
-		vcs_filename = join_path(os.path.dirname(__file__), 'version.cfg')
-		g_version = acquire_version_data(vcs_filename)
+		## Getting build version.
+		g_version = acquire_version_data()
 		## Printing status.
-		print 'Acquired new version for build: {}.'.format(g_version)
+		print 'Acquired version for build: {}.'.format(g_version)
 		## Loading macros.
 		g_globalMacros = {macro: format_macros(replace, {'<version>': g_version}) for macro, replace in g_config["globalMacros"].items()}
 		g_pathsMacros = {macro: format_macros(replace, g_globalMacros) for macro, replace in g_config["pathsMacros"].items()}
