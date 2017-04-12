@@ -1,8 +1,8 @@
-__application__ = ['X-Mod Library', 'XModLib']
+__application__ = ('X-Mod Library', 'XModLib')
 __official_topic__ = None
-__authors__ = ['GPCracker']
-__version__ = '<version>'
-__client__ = [['ru'], '<client>', None]
+__authors__ = ('GPCracker', )
+__version__ = ('<version>', None)
+__client__ = (('ru', ), '<client>', None)
 
 # *************************
 # Application info
@@ -11,7 +11,7 @@ if __name__ == '__main__':
 	applicationInfo = '{appname} ({appshort}) {version} ({client} {clusters}) by {authors}'.format(
 		appname = __application__[0],
 		appshort = __application__[1],
-		version = __version__,
+		version = __version__[0],
 		client = __client__[1],
 		clusters = ', '.join(__client__[0]).upper(),
 		authors = ', '.join(__authors__)
@@ -23,5 +23,13 @@ if __name__ == '__main__':
 # *************************
 # Compatibility test
 # *************************
-def isCompatibleLibVersion(application=[[None, None]], xmodlib=__version__.split('#')):
-	return any([all([version[0] is None or xmodlib[0] == version[0], version[1] is None or xmodlib[1] == version[1]]) for version in application])
+from . import Versioning
+
+def isCompatibleLibVersion(application=(None, None), xmodlib=__version__):
+	def parseGitDescription(description=None):
+		return Versioning.Version.parseGitDescription(description) if description not in ('<unknown>', None) else ()
+	requiredOrigin, requiredHighest = map(parseGitDescription, application)
+	providedCurrent, providedOrigin = map(parseGitDescription, xmodlib)
+	requiredVersion = Versioning.RequiredVersion(requiredOrigin, requiredHighest)
+	providedVersion = Versioning.ProvidedVersion(providedCurrent, providedOrigin)
+	return requiredVersion.isVersionCompatible(providedVersion)
