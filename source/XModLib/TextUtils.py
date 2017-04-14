@@ -3,7 +3,9 @@
 # *************************
 # Python
 # *************************
+import io
 import re
+import errno
 import gettext
 import collections
 
@@ -38,13 +40,30 @@ class MacrosFormatter(collections.namedtuple('MacrosFormatter', ('header', 'trai
 				return match.group()
 		return regex.sub(replacement, string)
 
+class TranslationFile(io.BytesIO):
+	__slots__ = ('_filename', )
+
+	name = property(lambda self: self._filename)
+
+	def __new__(sclass, content=b'', filename='<string>'):
+		return super(TranslationFile, sclass).__new__(sclass, content)
+
+	def __init__(self, content=b'', filename='<string>'):
+		super(TranslationFile, self).__init__(content)
+		self._filename = filename
+		return
+
 class TranslatorsCache(dict):
 	__slots__ = ()
 
 	@staticmethod
 	def _getTranslator(domain):
-		path = EngineUtils.getResMgrBasePath(EngineUtils.joinResMgrPath('text/LC_MESSAGES', domain + '.mo'))
-		return gettext.translation(domain, path, languages=['text'])
+		content = EngineUtils.getResMgrBinaryFileContent(EngineUtils.joinResMgrPath('text/lc_messages', domain + '.mo'))
+		if content is None:
+			raise IOError(errno.ENOENT, 'No translation file found for domain', domain)
+		with TranslationFile(content) as fakefile:
+			translation = gettext.GNUTranslations(fakefile)
+		return translation
 
 	def __missing__(self, domain):
 		return self.setdefault(domain, self._getTranslator(domain))
