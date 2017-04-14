@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- *** This file contains package metadata. *** -->
+<!-- *** Other languages are supported for texts *** -->
+<!-- *** To use them here you should switch encoding into 'UTF-8 without BOM'! *** -->
+<!-- *** Editing file in incorrect encoding will cause content damage. Check encoding before saving. *** -->
+<!-- *** It is recommended to use Notepad++, Sublime Text or any other professional text editor for making changes in this file. *** -->
+<root>
+	<!-- Technical modification identifier. -->
+	<!-- Технический идентификатор модификации. -->
+	<id>{{author}}.{{application}}</id>
+	<!-- Package version. -->
+	<!-- Версия пакета. -->
+	<version>{{version}}</version>
+	<!-- Human readable name. -->
+	<!-- Удобочитаемое имя модификации. -->
+	<name>X-Mod Python and ActionScript Library</name>
+	<!-- Human readable description. -->
+	<!-- Удобочитаемое описание модификации. -->
+	<description>Библиотека общего кода, классов и функций, используемая некоторыми модификациями автора как обязательный компонент, предназначена для исключения дублирования одного и того же кода в нескольких модификациях. Ознакомиться с подробностями, а также задать вопрос можно в официальной теме той модификации, по запросу которой был установлен данный пакет.</description>
+</root>
