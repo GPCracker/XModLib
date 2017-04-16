@@ -27,7 +27,7 @@ from . import Versioning
 
 def isCompatibleLibVersion(application=(None, None), xmodlib=__version__):
 	def parseGitDescription(description=None):
-		return Versioning.Version.parseGitDescription(description) if description not in ('<unknown>', None) else ()
+		return Versioning.Version.parseGitDescription(description) if description not in ('custom-build', None) else ()
 	requiredOrigin, requiredHighest = map(parseGitDescription, application)
 	providedCurrent, providedOrigin = map(parseGitDescription, xmodlib)
 	requiredVersion = Versioning.RequiredVersion(requiredOrigin, requiredHighest)
