@@ -219,7 +219,10 @@ class XMLReaderCollection(dict):
 	)
 	READER_TYPES = (
 		('Dict', DictXMLReaderMeta.construct('DictXMLReader')),
-		('Internal', InternalXMLReaderMeta.construct('InternalXMLReader'))
+		('Internal', InternalXMLReaderMeta.construct('InternalXMLReader')),
+		('Vector2AsTuple', VectorAsTupleXMLReaderMeta.construct('Vector2AsTupleXMLReader', 'Vector2')),
+		('Vector3AsTuple', VectorAsTupleXMLReaderMeta.construct('Vector3AsTupleXMLReader', 'Vector3')),
+		('Vector4AsTuple', VectorAsTupleXMLReaderMeta.construct('Vector4AsTupleXMLReader', 'Vector4'))
 	)
 
 	XML_GOOD = 'good'
