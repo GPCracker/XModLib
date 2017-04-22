@@ -8,6 +8,11 @@ import weakref
 import itertools
 
 # *************************
+# Python backports
+# *************************
+import backports.enum
+
+# *************************
 # BigWorld
 # *************************
 import ResMgr
@@ -20,14 +25,27 @@ import ResMgr
 # *************************
 # X-Mod Library
 # *************************
-# Nothing
+from . import EngineUtils
+
+class XMLReaderMetaclass(type):
+	__slots__ = ()
+
+	def __new__(cls, name, bases, dct):
+		if '__slots__' not in dct:
+			dct = dct.copy(); dct.setdefault('__slots__', ())
+		return super(XMLReaderMetaclass, cls).__new__(cls, name, bases, dct)
 
 class XMLReaderMeta(object):
+	__metaclass__ = XMLReaderMetaclass
 	__slots__ = ('readerName', 'collectionProxy')
 
 	@classmethod
-	def _constructClass(cls, className, **kwargs):
-		return type(className, (cls, ), kwargs)
+	def _subclass(cls, name, **kwargs):
+		return type(name, (cls, ), kwargs)
+
+	@classmethod
+	def construct(cls, className):
+		return cls._subclass(className)
 
 	@staticmethod
 	def _iterXmlSectionItems(xmlSection):
@@ -68,19 +86,11 @@ class XMLReaderMeta(object):
 class InternalXMLReaderMeta(XMLReaderMeta):
 	__slots__ = ()
 
-	@classmethod
-	def construct(cls, className):
-		return cls._constructClass(className)
-
 	def _readSection(self, xmlSection, defSection):
 		return defSection
 
 class ResMgrXMLReaderMeta(XMLReaderMeta):
 	__slots__ = ()
-
-	@classmethod
-	def construct(cls, className):
-		return cls._constructClass(className)
 
 	def _readSection(self, xmlSection, defSection):
 		return getattr(xmlSection, 'as' + self.readerName) if xmlSection is not None else defSection
@@ -90,7 +100,9 @@ class VectorAsTupleXMLReaderMeta(XMLReaderMeta):
 
 	@classmethod
 	def construct(cls, className, vectorType='Vector2'):
-		return cls._constructClass(className, vectorType=vectorType)
+		readerClass = super(VectorAsTupleXMLReaderMeta, cls).construct(className)
+		readerClass.vectorType = vectorType
+		return readerClass
 
 	def _readSection(self, xmlSection, defSection):
 		if getattr(self, 'vectorType', None) is None:
@@ -102,8 +114,9 @@ class LocalizedWideStringXMLReaderMeta(XMLReaderMeta):
 
 	@classmethod
 	def construct(cls, className, translator=None):
-		translator = staticmethod(translator if translator is not None else lambda string: string)
-		return cls._constructClass(className, translator=translator)
+		readerClass = super(LocalizedWideStringXMLReaderMeta, cls).construct(className)
+		readerClass.translator = staticmethod(translator if translator is not None else lambda string: string)
+		return readerClass
 
 	def _readSection(self, xmlSection, defSection):
 		if getattr(self, 'translator', None) is None:
@@ -112,10 +125,6 @@ class LocalizedWideStringXMLReaderMeta(XMLReaderMeta):
 
 class AttributeBasedXMLReaderMeta(XMLReaderMeta):
 	__slots__ = ()
-
-	@classmethod
-	def construct(cls, className):
-		return cls._constructClass(className)
 
 	def _readSection(self, xmlSection, defSection):
 		if xmlSection is not None:
@@ -128,10 +137,6 @@ class AttributeBasedXMLReaderMeta(XMLReaderMeta):
 class DictXMLReaderMeta(XMLReaderMeta):
 	__slots__ = ()
 
-	@classmethod
-	def construct(cls, className):
-		return cls._constructClass(className)
-
 	def _readSection(self, xmlSection, defSection):
 		return {nestedName: self._readNestedSection(xmlSection[nestedName] if xmlSection is not None else None, defSection[nestedName]) for nestedName in defSection.iterkeys()}
 
@@ -140,7 +145,11 @@ class ListXMLReaderMeta(XMLReaderMeta):
 
 	@classmethod
 	def construct(cls, className, itemName='item', itemType='String', itemDefault=''):
-		return cls._constructClass(className, itemName=itemName, itemType=itemType, itemDefault=itemDefault)
+		readerClass = super(ListXMLReaderMeta, cls).construct(className)
+		readerClass.itemName = itemName
+		readerClass.itemType = itemType
+		readerClass.itemDefault = itemDefault
+		return readerClass
 
 	def _readSection(self, xmlSection, defSection):
 		if getattr(self, 'itemName', None) is None:
@@ -158,7 +167,10 @@ class CustomDictXMLReaderMeta(XMLReaderMeta):
 
 	@classmethod
 	def construct(cls, className, itemType='String', itemDefault=''):
-		return cls._constructClass(className, itemType=itemType, itemDefault=itemDefault)
+		readerClass = super(CustomDictXMLReaderMeta, cls).construct(className)
+		readerClass.itemType = itemType
+		readerClass.itemDefault = itemDefault
+		return readerClass
 
 	def _readSection(self, xmlSection, defSection):
 		if getattr(self, 'itemType', None) is None:
@@ -174,7 +186,10 @@ class OptionalDictXMLReaderMeta(XMLReaderMeta):
 
 	@classmethod
 	def construct(cls, className, requiredKeys=(), defaultKeys=()):
-		return cls._constructClass(className, requiredKeys=requiredKeys, defaultKeys=defaultKeys)
+		readerClass = super(OptionalDictXMLReaderMeta, cls).construct(className)
+		readerClass.requiredKeys = requiredKeys
+		readerClass.defaultKeys = defaultKeys
+		return readerClass
 
 	def _readSection(self, xmlSection, defSection):
 		if getattr(self, 'requiredKeys', None) is None:
@@ -190,8 +205,10 @@ class DataObjectXMLReaderMeta(XMLReaderMeta):
 
 	@classmethod
 	def construct(cls, className, constructor=None, sectionType='String'):
-		constructor = staticmethod(constructor if constructor is not None else lambda data: data)
-		return cls._constructClass(className, constructor=constructor, sectionType=sectionType)
+		readerClass = super(DataObjectXMLReaderMeta, cls).construct(className)
+		readerClass.constructor = staticmethod(constructor if constructor is not None else lambda data: data)
+		readerClass.sectionType = sectionType
+		return readerClass
 
 	def _readSection(self, xmlSection, defSection, **kwargs):
 		if getattr(self, 'constructor', None) is None:
@@ -200,8 +217,53 @@ class DataObjectXMLReaderMeta(XMLReaderMeta):
 			raise AttributeError('Section type is undefined or None.')
 		return self.constructor(self._readNestedSection(xmlSection, (self.sectionType, defSection)), **kwargs)
 
+class ExternalSectionXMLReaderMeta(XMLReaderMeta):
+	__slots__ = ()
+
+	@classmethod
+	def construct(cls, className, externalSection=None, sectionType='String'):
+		readerClass = super(ExternalSectionXMLReaderMeta, cls).construct(className)
+		readerClass.externalSection = externalSection
+		readerClass.sectionType = sectionType
+		return readerClass
+
+	def _readSection(self, xmlSection, defSection):
+		if not hasattr(self, 'externalSection'):
+			raise AttributeError('External section is not defined.')
+		if getattr(self, 'sectionType', None) is None:
+			raise AttributeError('Section type is undefined or None.')
+		return self.collectionProxy[self.sectionType](self.externalSection, defSection)
+
+class XMLConfigStatus(backports.enum.Enum):
+	GOOD = 'good'
+	MISSING = 'missing'
+	CORRUPTED = 'corrupted'
+
+def testXmlPath(xmlPath):
+	if ResMgr.isFile(xmlPath):
+		if ResMgr.openSection(xmlPath) is None:
+			return XMLConfigStatus.CORRUPTED, xmlPath
+		return XMLConfigStatus.GOOD, xmlPath
+	if ResMgr.isDir(xmlPath):
+		return XMLConfigStatus.MISSING, xmlPath
+	return testXmlPath(EngineUtils.joinResMgrPath(xmlPath, '../'))
+
+def openSection(xmlPath, ignoreMissing=True):
+	status, breakpoint = testXmlPath(xmlPath)
+	if status == XMLConfigStatus.CORRUPTED:
+		raise RuntimeError('ResMgr path \'{}\' is based on corrupted data file \'{}\'.'.format(xmlPath, breakpoint))
+	elif status == XMLConfigStatus.MISSING and not ignoreMissing:
+		raise RuntimeError('ResMgr path \'{}\' is based on missing data file. Breakpoint at \'{}\'.'.format(xmlPath, breakpoint))
+	return ResMgr.openSection(xmlPath)
+
+def overrideSection(xmlSection, ignoreMissing=True):
+	override = xmlSection['override'] if xmlSection is not None else None
+	if override is not None and override.isAttribute:
+		xmlSection = overrideSection(openSection(override.asString, ignoreMissing))
+	return xmlSection
+
 class XMLReaderCollection(dict):
-	__slots__ = ('__weakref__', )
+	__slots__ = ('__weakref__', 'ignoreMissingSections')
 
 	RESMGR_TYPES = (
 		('Binary', ResMgrXMLReaderMeta.construct('BinaryXMLReader')),
@@ -225,46 +287,17 @@ class XMLReaderCollection(dict):
 		('Vector4AsTuple', VectorAsTupleXMLReaderMeta.construct('Vector4AsTupleXMLReader', 'Vector4'))
 	)
 
-	XML_GOOD = 'good'
-	XML_MISSING = 'missing'
-	XML_CORRUPTED = 'corrupted'
-
-	@classmethod
-	def openSection(cls, xmlPath, skipMissing=True):
-		status, breakpoint = cls._testXmlPath(xmlPath)
-		if status == cls.XML_CORRUPTED:
-			raise RuntimeError('ResMgr path \'{}\' is based on corrupted data file \'{}\'.'.format(xmlPath, breakpoint))
-		elif status == cls.XML_MISSING and not skipMissing:
-			raise RuntimeError('ResMgr path \'{}\' is based on missing data file. Breakpoint at \'{}\'.'.format(xmlPath, breakpoint))
-		return ResMgr.openSection(xmlPath)
-
-	@classmethod
-	def _testXmlPath(cls, xmlPath):
-		if ResMgr.isFile(xmlPath):
-			if ResMgr.openSection(xmlPath) is None:
-				return cls.XML_CORRUPTED, xmlPath
-			return cls.XML_GOOD, xmlPath
-		if ResMgr.isDir(xmlPath):
-			return cls.XML_MISSING, xmlPath
-		return cls._testXmlPath(os.path.normpath(os.path.join(xmlPath, '../')).replace(os.sep, '/'))
-
-	@classmethod
-	def _overrideSection(cls, xmlSection):
-		override = xmlSection['override'] if xmlSection is not None else None
-		if override is not None and override.isAttribute:
-			xmlSection = cls._overrideSection(cls.openSection(override.asString))
-		return xmlSection
-
-	def __init__(self, customTypes=()):
-		super(XMLReaderCollection, self).__init__()
-		self.update(itertools.starmap(
-			lambda readerName, readerClass: (readerName, readerClass(readerName, weakref.proxy(self))),
-			itertools.chain(self.RESMGR_TYPES, self.READER_TYPES, customTypes)
-		))
-		return
-
 	def __new__(cls, *args, **kwargs):
 		return super(XMLReaderCollection, cls).__new__(cls)
+
+	def __init__(self, customTypes=(), ignoreMissingSections=True):
+		super(XMLReaderCollection, self).__init__()
+		self.update({readerName: readerClass(readerName, weakref.proxy(self)) for readerName, readerClass in itertools.chain(self.RESMGR_TYPES, self.READER_TYPES, customTypes)})
+		self.ignoreMissingSections = ignoreMissingSections
+		return
+
+	def __repr__(self):
+		return '{}:{}'.format(object.__repr__(self), super(XMLReaderCollection, self).__repr__())
 
 	def _parseDefaultItem(self, defItem):
 		if isinstance(defItem, dict):
@@ -283,10 +316,7 @@ class XMLReaderCollection(dict):
 		readerName, defSection, kwargs = self._parseDefaultItem(defItem)
 		if xmlSection is not None and xmlSection.isAttribute:
 			xmlSection = None
-		return self[readerName](self._overrideSection(xmlSection), defSection, **kwargs)
-
-	def __repr__(self):
-		return '{}:{}'.format(object.__repr__(self), super(XMLReaderCollection, self).__repr__())
+		return self[readerName](overrideSection(xmlSection, self.ignoreMissingSections), defSection, **kwargs)
 
 class XMLConfigReader(XMLReaderCollection):
-	pass
+	__slots__ = ()
