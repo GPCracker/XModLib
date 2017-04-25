@@ -50,34 +50,6 @@ package net.GPCracker.battle.views.components.panels
 			return;
 		}
 
-		private function registerMouseClickEvents():void
-		{
-			this.addEventListener(MouseEvent.MOUSE_DOWN, this.onDragStart);
-			this.addEventListener(MouseEvent.MOUSE_UP, this.onDragStop);
-			return
-		}
-
-		private function unregisterMouseClickEvents():void
-		{
-			this.removeEventListener(MouseEvent.MOUSE_DOWN, this.onDragStart);
-			this.removeEventListener(MouseEvent.MOUSE_UP, this.onDragStop);
-			return;
-		}
-
-		private function registerMouseHoverEvents():void
-		{
-			this.addEventListener(MouseEvent.MOUSE_OVER, this.onToolTipShow);
-			this.addEventListener(MouseEvent.MOUSE_OUT, this.onToolTipHide);
-			return;
-		}
-
-		private function unregisterMouseHoverEvents():void
-		{
-			this.removeEventListener(MouseEvent.MOUSE_OVER, this.onToolTipShow);
-			this.removeEventListener(MouseEvent.MOUSE_OUT, this.onToolTipHide);
-			return;
-		}
-
 		private function onDragUpdatePosition():void
 		{
 			this._positionX = +((this.x + (this.width >> 1)) / (this._stageWidth >> 1) - 1.0);
@@ -87,23 +59,33 @@ package net.GPCracker.battle.views.components.panels
 
 		private function onDragStart(event:MouseEvent):void
 		{
-			App.toolTipMgr.hide();
-			this.unregisterMouseHoverEvents();
-			this.textBorder.setColor(0x000000);
-			this.py_onPanelDragS(this._positionX, this._positionY);
-			this.onDragUpdatePosition();
-			this.startDrag();
+			if (App.utils.commons.isLeftButton(event))
+			{
+				App.toolTipMgr.hide();
+				this.textBorder.setColor(0x000000);
+				this.removeEventListener(MouseEvent.MOUSE_OVER, this.onToolTipShow);
+				this.removeEventListener(MouseEvent.MOUSE_OUT, this.onToolTipHide);
+				this.addEventListener(MouseEvent.MOUSE_UP, this.onDragStop);
+				this.py_onPanelDragS(this._positionX, this._positionY);
+				this.onDragUpdatePosition();
+				this.startDrag();
+			}
 			return;
 		}
 
 		private function onDragStop(event:MouseEvent):void
 		{
-			this.stopDrag();
-			this.onDragUpdatePosition();
-			this.py_onPanelDropS(this._positionX, this._positionY);
-			this.textBorder.setColor(0x999999);
-			this.registerMouseHoverEvents();
-			App.toolTipMgr.show(this.tooltip);
+			if (App.utils.commons.isLeftButton(event))
+			{
+				this.stopDrag();
+				this.onDragUpdatePosition();
+				this.py_onPanelDropS(this._positionX, this._positionY);
+				this.removeEventListener(MouseEvent.MOUSE_UP, this.onDragStop);
+				this.addEventListener(MouseEvent.MOUSE_OUT, this.onToolTipHide);
+				this.addEventListener(MouseEvent.MOUSE_OVER, this.onToolTipShow);
+				this.textBorder.setColor(0x999999);
+				App.toolTipMgr.show(this.tooltip);
+			}
 			return;
 		}
 
@@ -168,13 +150,15 @@ package net.GPCracker.battle.views.components.panels
 			this.textBorder.visible = false;
 			if (enabled)
 			{
-				this.registerMouseClickEvents();
-				this.registerMouseHoverEvents();
+				this.addEventListener(MouseEvent.MOUSE_OVER, this.onToolTipShow);
+				this.addEventListener(MouseEvent.MOUSE_OUT, this.onToolTipHide);
+				this.addEventListener(MouseEvent.MOUSE_DOWN, this.onDragStart);
 			}
 			else
 			{
-				this.unregisterMouseClickEvents()
-				this.unregisterMouseHoverEvents()
+				this.removeEventListener(MouseEvent.MOUSE_DOWN, this.onDragStart);
+				this.removeEventListener(MouseEvent.MOUSE_OUT, this.onToolTipHide);
+				this.removeEventListener(MouseEvent.MOUSE_OVER, this.onToolTipShow);
 			}
 			return;
 		}
