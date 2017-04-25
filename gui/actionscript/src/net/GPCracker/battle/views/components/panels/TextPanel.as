@@ -1,6 +1,7 @@
 package net.GPCracker.battle.views.components.panels
 {
 	import flash.events.MouseEvent;
+	import net.GPCracker.battle.views.components.panels.contexts.TextPanelContextMenuSentData;
 	import net.GPCracker.battle.views.components.panels.elements.PanelBackground;
 	import net.GPCracker.battle.views.components.panels.elements.PanelBorder;
 	import net.GPCracker.battle.views.components.panels.elements.PanelText;
@@ -65,6 +66,7 @@ package net.GPCracker.battle.views.components.panels
 				this.textBorder.setColor(0x000000);
 				this.removeEventListener(MouseEvent.MOUSE_OVER, this.onToolTipShow);
 				this.removeEventListener(MouseEvent.MOUSE_OUT, this.onToolTipHide);
+				this.removeEventListener(MouseEvent.CLICK, this.onContextMenuShow);
 				this.addEventListener(MouseEvent.MOUSE_UP, this.onDragStop);
 				this.py_onPanelDragS(this._positionX, this._positionY);
 				this.onDragUpdatePosition();
@@ -81,10 +83,20 @@ package net.GPCracker.battle.views.components.panels
 				this.onDragUpdatePosition();
 				this.py_onPanelDropS(this._positionX, this._positionY);
 				this.removeEventListener(MouseEvent.MOUSE_UP, this.onDragStop);
+				this.addEventListener(MouseEvent.CLICK, this.onContextMenuShow);
 				this.addEventListener(MouseEvent.MOUSE_OUT, this.onToolTipHide);
 				this.addEventListener(MouseEvent.MOUSE_OVER, this.onToolTipShow);
 				this.textBorder.setColor(0x999999);
 				App.toolTipMgr.show(this.tooltip);
+			}
+			return;
+		}
+
+		private function onContextMenuShow(event:MouseEvent):void
+		{
+			if (App.utils.commons.isRightButton(event))
+			{
+				App.contextMenuMgr.show(this.name, this, new TextPanelContextMenuSentData(this.name));
 			}
 			return;
 		}
@@ -153,9 +165,11 @@ package net.GPCracker.battle.views.components.panels
 				this.addEventListener(MouseEvent.MOUSE_OVER, this.onToolTipShow);
 				this.addEventListener(MouseEvent.MOUSE_OUT, this.onToolTipHide);
 				this.addEventListener(MouseEvent.MOUSE_DOWN, this.onDragStart);
+				this.addEventListener(MouseEvent.CLICK, this.onContextMenuShow);
 			}
 			else
 			{
+				this.removeEventListener(MouseEvent.CLICK, this.onContextMenuShow);
 				this.removeEventListener(MouseEvent.MOUSE_DOWN, this.onDragStart);
 				this.removeEventListener(MouseEvent.MOUSE_OUT, this.onToolTipHide);
 				this.removeEventListener(MouseEvent.MOUSE_OVER, this.onToolTipShow);
