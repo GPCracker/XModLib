@@ -1,3 +1,7 @@
+# Excluding actionscript binaries
+gui/actionscript/bin/
+gui/actionscript/obj/
+gui/actionscript/swc/
 # Excluding build
 build/
 # Excluding release
@@ -8,9 +12,3 @@ tools/
 topic/
 # Excluding temp
 temp/
-# Excluding version
-version.cfg
-# Excluding actionscript binaries
-gui/actionscript/bin/
-gui/actionscript/obj/
-gui/actionscript/swc/
