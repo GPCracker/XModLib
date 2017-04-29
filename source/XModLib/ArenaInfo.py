@@ -44,6 +44,12 @@ def isReady(vehicleID):
 def getTeam(vehicleID):
 	return BigWorld.player().guiSessionProvider.getArenaDP().getVehicleInfo(vehicleID).team
 
+def getPlayerName(vehicleID):
+	return BigWorld.player().guiSessionProvider.getArenaDP().getVehicleInfo(vehicleID).player.name
+
+def getVehicleName(vehicleID):
+	return BigWorld.player().guiSessionProvider.getArenaDP().getVehicleInfo(vehicleID).vehicleType.name
+
 def getLevel(vehicleID):
 	return BigWorld.player().guiSessionProvider.getArenaDP().getVehicleInfo(vehicleID).vehicleType.level
 
