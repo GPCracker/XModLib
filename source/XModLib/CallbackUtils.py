@@ -3,13 +3,9 @@
 # *************************
 # Python
 # *************************
+import enum
 import weakref
 import functools
-
-# *************************
-# Python backports
-# *************************
-import backports.enum
 
 # *************************
 # BigWorld
@@ -54,7 +50,7 @@ class Callback(int):
 		self._cancel(self)
 		return
 
-class CallbackLoopType(backports.enum.Enum):
+class CallbackLoopType(enum.Enum):
 	SINGLE = 'single'
 	STATIC = 'static'
 	DYNAMIC = 'dynamic'

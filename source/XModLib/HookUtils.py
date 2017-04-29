@@ -3,15 +3,11 @@
 # *************************
 # Python
 # *************************
+import enum
 import types
 import functools
 import traceback
 import collections
-
-# *************************
-# Python backports
-# *************************
-import backports.enum
 
 # *************************
 # BigWorld
@@ -28,13 +24,13 @@ import backports.enum
 # *************************
 # Nothing
 
-class HookInvoke(backports.enum.Enum):
+class HookInvoke(enum.Enum):
 	MASTER = 'master'
 	PRIMARY = 'primary'
 	SECONDARY = 'secondary'
 	DEFAULT = SECONDARY
 
-class PropertyAction(backports.enum.Enum):
+class PropertyAction(enum.Enum):
 	GET = 'fget'
 	SET = 'fset'
 	DEL = 'fdel'

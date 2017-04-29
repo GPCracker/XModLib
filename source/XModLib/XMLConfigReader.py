@@ -3,14 +3,10 @@
 # *************************
 # Python
 # *************************
+import enum
 import os.path
 import weakref
 import itertools
-
-# *************************
-# Python backports
-# *************************
-import backports.enum
 
 # *************************
 # BigWorld
@@ -234,7 +230,7 @@ class ExternalSectionXMLReaderMeta(XMLReaderMeta):
 			raise AttributeError('Section type is undefined or None.')
 		return self.collectionProxy[self.sectionType](self.externalSection, defSection)
 
-class XMLConfigStatus(backports.enum.Enum):
+class XMLConfigStatus(enum.Enum):
 	GOOD = 'good'
 	MISSING = 'missing'
 	CORRUPTED = 'corrupted'

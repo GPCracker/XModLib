@@ -8,11 +8,6 @@ import cPickle
 import functools
 
 # *************************
-# Python backports
-# *************************
-# Nothing
-
-# *************************
 # BigWorld
 # *************************
 import ResMgr
