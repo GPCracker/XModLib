@@ -3,7 +3,7 @@
 # *************************
 # Python
 # *************************
-# Nothing
+import types
 
 # *************************
 # BigWorld
@@ -22,41 +22,53 @@ import items.vehicles
 # Nothing
 
 def isVehicle(entity):
+	if not isinstance(entity, (BigWorld.Entity, types.NoneType)):
+		entity = BigWorld.entity(entity)
 	return isinstance(entity, Vehicle.Vehicle)
 
-def isVisible(vehicleID):
-	return BigWorld.entity(vehicleID) is not None
+def isVisible(entity):
+	if not isinstance(entity, (BigWorld.Entity, types.NoneType)):
+		entity = BigWorld.entity(entity)
+	return entity is not None
 
-def isTarget(vehicleID):
-	target = BigWorld.target()
-	return target and target.id == vehicleID
+def isTarget(vehicle):
+	if not isinstance(vehicle, (BigWorld.Entity, types.NoneType)):
+		vehicle = BigWorld.entity(vehicle)
+	return vehicle and vehicle is BigWorld.target()
 
-def isAutoAim(vehicleID):
-	autoAimVehicle = BigWorld.player().autoAimVehicle
-	return autoAimVehicle and autoAimVehicle.id == vehicleID
+def isAutoAim(vehicle):
+	if not isinstance(vehicle, (BigWorld.Entity, types.NoneType)):
+		vehicle = BigWorld.entity(vehicle)
+	return vehicle and vehicle is BigWorld.player().autoAimVehicle
 
-def isAlive(vehicleID):
-	vehicle = BigWorld.entity(vehicleID)
+def isAlive(vehicle):
+	if not isinstance(vehicle, (BigWorld.Entity, types.NoneType)):
+		vehicle = BigWorld.entity(vehicle)
 	return vehicle and vehicle.isAlive()
 
-def isPlayer(vehicleID):
-	vehicle = BigWorld.entity(vehicleID)
+def isPlayer(vehicle):
+	if not isinstance(vehicle, (BigWorld.Entity, types.NoneType)):
+		vehicle = BigWorld.entity(vehicle)
 	return vehicle and vehicle.isPlayer
 
-def getSpeed(vehicleID):
-	vehicle = BigWorld.entity(vehicleID)
+def getSpeed(vehicle):
+	if not isinstance(vehicle, (BigWorld.Entity, types.NoneType)):
+		vehicle = BigWorld.entity(vehicle)
 	return vehicle and vehicle.getSpeed()
 
-def getTeam(vehicleID):
-	vehicle = BigWorld.entity(vehicleID)
+def getTeam(vehicle):
+	if not isinstance(vehicle, (BigWorld.Entity, types.NoneType)):
+		vehicle = BigWorld.entity(vehicle)
 	return vehicle and vehicle.publicInfo['team']
 
-def getLevel(vehicleID):
-	vehicle = BigWorld.entity(vehicleID)
+def getLevel(vehicle):
+	if not isinstance(vehicle, (BigWorld.Entity, types.NoneType)):
+		vehicle = BigWorld.entity(vehicle)
 	return vehicle and vehicle.typeDescriptor.type.level
 
-def getClass(vehicleID):
-	vehicle = BigWorld.entity(vehicleID)
+def getClass(vehicle):
+	if not isinstance(vehicle, (BigWorld.Entity, types.NoneType)):
+		vehicle = BigWorld.entity(vehicle)
 	return vehicle and tuple(vehicle.typeDescriptor.type.tags & items.vehicles.VEHICLE_CLASS_TAGS)[0]
 
 def getPlayerVehicleID():
