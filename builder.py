@@ -193,26 +193,27 @@ def load_source_string(src_filenames, source_encoding='acsii'):
 
 if __name__ == '__main__':
 	try:
-		## Reading configuration.
+		## Loading configuration.
+		print '>>>> Loading build configuration... <<<<'
 		cfg_filename = join_path(os.path.splitext(__file__)[0] + '.cfg')
 		with open(cfg_filename, 'rb') as cfg_bin_buffer:
 			g_config = json.loads(cfg_bin_buffer.read())
-		## Printing status.
-		print 'Build config file loaded.'
-		## Getting build version.
+		## Acquiring build version.
+		print '>>>> Acquiring build version... <<<<'
 		g_version = acquire_version_data()
 		## Printing status.
-		print 'Acquired version for build: {}.'.format(g_version)
+		print ' Build version: {}.'.format(g_version)
 		## Loading macros.
 		g_globalMacros = {macro: format_macros(replace, {'<<version>>': g_version}) for macro, replace in g_config["globalMacros"].viewitems()}
 		g_pathsMacros = {macro: format_macros(replace, g_globalMacros) for macro, replace in g_config["pathsMacros"].viewitems()}
 		g_metaMacros = {macro.replace('<<', '{{').replace('>>', '}}'): replace for macro, replace in g_globalMacros.viewitems()}
 		g_allMacros = merge_dicts(g_globalMacros, g_pathsMacros)
-		## Cleanup previous build.
+		## Cleaning up previous build.
+		print '>>>> Cleaning up previous build... <<<<'
 		for cleanup in g_config["cleanupPaths"]:
 			cleanup = norm_path(format_macros(cleanup, g_allMacros))
 			# Printing status.
-			print 'Cleaning build path: {}.'.format(cleanup)
+			print ' Cleaning: {}.'.format(cleanup)
 			# Removing all content.
 			if os.path.isdir(cleanup):
 				shutil.rmtree(cleanup)
