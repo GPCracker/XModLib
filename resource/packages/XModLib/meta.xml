@@ -10,7 +10,7 @@
 	<id>{{author}}.{{application}}</id>
 	<!-- Package version. -->
 	<!-- Версия пакета. -->
-	<version>{{version}}</version>
+	<version>{{signature}}</version>
 	<!-- Human readable name. -->
 	<!-- Удобочитаемое имя модификации. -->
 	<name>X-Mod Python and ActionScript Library</name>

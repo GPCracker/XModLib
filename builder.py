@@ -1,5 +1,6 @@
 import io
 import os
+import re
 import imp
 import sys
 import json
@@ -104,7 +105,7 @@ def compile_zipfile_string(src_data_blocks, dst_bin_comment='', compress=False):
 		dst_bin_data = dst_bin_buffer.getvalue()
 	return dst_bin_data
 
-def acquire_version_data():
+def acquire_build_version():
 	if os.name == 'posix':
 		git = 'git'
 	elif os.name == 'nt':
@@ -117,6 +118,23 @@ def acquire_version_data():
 	if git_process.poll():
 		vcs_str_data = 'custom-build'
 	return vcs_str_data
+
+def acquire_build_signature(build_time):
+	if os.name == 'posix':
+		git = 'git'
+	elif os.name == 'nt':
+		git = 'tools/git-scm/bin/git.exe'
+	else:
+		raise RuntimeError('Current operation system is not supported.')
+	args = [git, 'describe', '--match=v*', '--dirty', '--long']
+	git_process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+	vcs_str_data = git_process.communicate()[0].strip()
+	if git_process.poll():
+		return 'custom-build'
+	version, ahead = re.match('(?:v(\d+(?:\.\d+)*))(?:\-(\d+)\-g([0-9a-f]+))?(?:\-(dirty))?', vcs_str_data).group(1, 2)
+	signature = '.'.join(itertools.imap('{:02d}'.format, itertools.imap(int, version.split('.'))))[1:]
+	signature += '-{:03d}-{:08x}'.format(int(ahead), int(build_time))
+	return signature
 
 def merge_dicts(base, *args, **kwargs):
 	result = base.copy()
@@ -207,11 +225,13 @@ if __name__ == '__main__':
 			g_config = json.loads(cfg_bin_buffer.read())
 		## Acquiring build version.
 		print '>>>> Acquiring build version... <<<<'
-		g_version = acquire_version_data()
+		g_version = acquire_build_version()
+		g_signature = acquire_build_signature(g_timestamp)
 		## Printing status.
 		print ' Build version: {}.'.format(g_version)
+		print ' Build signature: {}.'.format(g_signature)
 		## Loading macros.
-		g_globalMacros = {macro: format_macros(replace, {'<<version>>': g_version}) for macro, replace in g_config["globalMacros"].viewitems()}
+		g_globalMacros = {macro: format_macros(replace, {'<<version>>': g_version, '<<signature>>': g_signature}) for macro, replace in g_config["globalMacros"].viewitems()}
 		g_pathsMacros = {macro: format_macros(replace, g_globalMacros) for macro, replace in g_config["pathsMacros"].viewitems()}
 		g_metaMacros = {macro.replace('<<', '{{').replace('>>', '}}'): replace for macro, replace in g_globalMacros.viewitems()}
 		g_allMacros = merge_dicts(g_globalMacros, g_pathsMacros)
