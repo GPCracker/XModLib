@@ -209,7 +209,7 @@ if __name__ == '__main__':
 		g_metaMacros = {macro.replace('<<', '{{').replace('>>', '}}'): replace for macro, replace in g_globalMacros.viewitems()}
 		g_allMacros = merge_dicts(g_globalMacros, g_pathsMacros)
 		## Cleanup previous build.
-		for cleanup in g_config["cleanup"]:
+		for cleanup in g_config["cleanupPaths"]:
 			cleanup = norm_path(format_macros(cleanup, g_allMacros))
 			# Printing status.
 			print 'Cleaning build path: {}.'.format(cleanup)
@@ -468,28 +468,42 @@ if __name__ == '__main__':
 			save_file_data(pkg_build, dst_bin_data)
 			# Returning archive blocks.
 			return [[pkg_release, dst_bin_data]]
-		## Creating release archive data blocks storage.
-		g_releaseBlocks = list()
-		## Building release archive packages.
-		print '>>> Building packages... <<<'
-		# Building packages.
-		g_releaseBlocks.extend(itertools.chain.from_iterable(
-			[g_packageBuildEntry(src_entry, level=1) for src_entry in g_config["releasePackages"]]
-		))
-		## Building release archive resources.
-		print '>>> Building resources... <<<'
-		g_releaseBlocks.extend(itertools.chain.from_iterable(
-			[g_resourceBuildEntry(src_entry, level=1) for src_entry in g_config["releaseResources"]]
-		))
-		## Loading release archive filename.
-		g_releaseArchive = norm_path(format_macros(g_config["releaseArchive"], g_allMacros))
-		## Loading release archive comment.
-		g_releaseComment = format_macros(g_config["releaseComment"], g_allMacros).encode('ascii')
-		## Saving release archive file.
-		print '>>> Saving archive... <<<'
-		save_file_data(g_releaseArchive, compile_zipfile_string(g_releaseBlocks, g_releaseComment, compress=True))
+		# Archive build command.
+		def g_archiveBuildEntry(src_entry, level=0):
+			# Parsing archive entry.
+			entry_parser = operator.itemgetter('archive', 'comment', 'packages', 'resources')
+			arh_archive, arh_comment, arh_packages, arh_resources = entry_parser(src_entry)
+			# Formatting macros.
+			arh_archive = norm_path(format_macros(arh_archive, g_allMacros))
+			arh_comment = format_macros(arh_comment, g_allMacros).encode('ascii')
+			# Printing status.
+			indent = ' ' * level
+			print indent + 'Building archive: {}.'.format(arh_archive)
+			# Creating archive data blocks storage.
+			archive_blocks = list()
+			#>>> Building archive packages.
+			print indent + ' >>> Building archive packages... <<<'
+			# Building packages.
+			archive_blocks.extend(itertools.chain.from_iterable(
+				[g_packageBuildEntry(src_entry, level + 2) for src_entry in arh_packages]
+			))
+			#>>> Building archive resources.
+			print indent + ' >>> Building archive resources... <<<'
+			# Building resources.
+			archive_blocks.extend(itertools.chain.from_iterable(
+				[g_resourceBuildEntry(src_entry, level + 2) for src_entry in arh_resources]
+			))
+			#>>> Assembling archive.
+			dst_bin_data = compile_zipfile_string(archive_blocks, arh_comment, compress=True)
+			#>>> Saving binary file.
+			save_file_data(arh_archive, dst_bin_data)
+			# Returning archive name (release archives are final files).
+			return arh_archive
+		## Building release archives.
+		print '>>>> Building release archives... <<<<'
+		g_releaseFiles = [g_archiveBuildEntry(src_entry, level=1) for src_entry in g_config["releaseArchives"]]
 		## Build finished.
-		print '>>> Build finished. <<<'
+		print '>>>> Build finished. <<<<'
 		## Exiting with "successful termination" code.
 		sys.exit(0)
 	except StandardError:
