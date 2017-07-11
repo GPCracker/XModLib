@@ -1,30 +1,30 @@
 ## X-Mod Library
 
-X-Mod is a code library for World of Tanks mods. It provides
+X-Mod is a code library for World of Tanks modifications. It provides many
+useful functions, maintains single change history and prevents code doubling
+between modifications.
 
-* Simple access to arena requests (score, squad, player status)
-* Simple callback control and callback-based classes
-* Client version getting and comparison
-* Collision test functions
-* WG-XML-based config reader (ResMgr supports specific BigWorld classes, like Matrix, Vectors)
-* 3D Geometry helpers, planes and bounding box calculations
-* BW-GUI wrapper, provides easier access to BW GUI elements
-* Code helpers (events, triggers)
-* Hook control class (simple hook injection with decorators)
-* Keyboard helper (key event parser, key sequence builder and parser)
-* Python string format decorator (custom macros header and trailer)
-* Messenger wrappers (chat message displaying or sending)
-* Minimap entry manager (simple minimap entries creation or removing)
-* PathFinder module (gets full path to file by ResMgr relative path)
-* Sound events and queues
-* Umlaut decoder for BW GUI texts
-* Vehicle info class (vehicle entity-based info)
-* Vehicle math module (model calculations and matrix transformations)
+## Manual assembling
 
-## X-Mod Library Usage
+Manual is expected in near future.
 
-X-Mod is an important part (a core module) of several mods and is being developed as a common script storage for them. This approach prevents code doubling between mods, providing single change history. Author does not aim to implement features required in neither of his mods here.
+## Downloading installation-ready assemblies
 
-## Updating, Bugs, Errors, Discussion
+Beta and release assemblies are available for downloading in
+[releases](../releases), alpha versions are posted and discussed only in
+official topics of modifications that use this library.
 
-Author tries to update library as soon as possible after new WoT patch released, but if you need it "just now" or you want to use it on specific game client version, you can fix it yourself. Feature requests and bug reports should be made in official topics of appropriate mods.
+## Installation
+
+Modification does not require any special installation, just unpack archive to
+your *mods* folder. Ensure you have backup before upgrading, especially to alpha
+versions (for possible rollback).
+
+## Info, Updating, Bugs, Errors, Discussion
+
+Author tries to update a library as soon as possible after new WoT patch is
+released.
+
+All additional information, discussion, feature requests and bug reports are
+also available in English or Russian in official topics of appropriate
+modifications.
