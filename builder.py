@@ -1,6 +1,7 @@
 import io
 import os
 import imp
+import sys
 import json
 import time
 import shutil
@@ -489,5 +490,10 @@ if __name__ == '__main__':
 		save_file_data(g_releaseArchive, compile_zipfile_string(g_releaseBlocks, g_releaseComment, compress=True))
 		## Build finished.
 		print '>>> Build finished. <<<'
-	except:
+		## Exiting with "successful termination" code.
+		sys.exit(0)
+	except StandardError:
+		## Printing occurred error.
 		traceback.print_exc()
+		## Exiting with "abnormal termination" code.
+		sys.exit(1)
