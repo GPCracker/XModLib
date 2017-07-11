@@ -177,15 +177,16 @@ def load_file_data(src_filename):
 def load_file_str(src_filename, encoding='acsii'):
 	return unicode(load_file_data(src_filename), encoding=encoding)
 
-def save_file_data(dst_filename, src_bin_data):
+def save_file_data(dst_filename, src_bin_data, timestamp=time.time()):
 	if not os.path.isdir(os.path.dirname(dst_filename)):
 		os.makedirs(os.path.dirname(dst_filename))
 	with open(dst_filename, 'wb') as dst_bin_buffer:
 		dst_bin_buffer.write(src_bin_data)
+	os.utime(dst_filename, (timestamp, timestamp))
 	return
 
-def save_file_str(dst_filename, src_str_data, encoding='acsii'):
-	save_file_data(dst_filename, src_str_data.encode(encoding=encoding))
+def save_file_str(dst_filename, src_str_data, encoding='acsii', timestamp=time.time()):
+	save_file_data(dst_filename, src_str_data.encode(encoding=encoding), timestamp=timestamp)
 	return
 
 def load_source_string(src_filenames, source_encoding='acsii'):
@@ -193,6 +194,12 @@ def load_source_string(src_filenames, source_encoding='acsii'):
 
 if __name__ == '__main__':
 	try:
+		## Acquiring build time.
+		print '>>>> Acquiring build time... <<<<'
+		g_timestamp = time.time()
+		## Printing status.
+		# A workaround is used here to bypass python timezone bug.
+		print ' Build time: {}.'.format(time.strftime('%c', time.localtime(g_timestamp)) + time.strftime(' %z'))
 		## Loading configuration.
 		print '>>>> Loading build configuration... <<<<'
 		cfg_filename = join_path(os.path.splitext(__file__)[0] + '.cfg')
@@ -240,7 +247,7 @@ if __name__ == '__main__':
 			# Loading binary file.
 			dst_bin_data = load_file_data(asm_filename)
 			# Saving binary file.
-			save_file_data(bin_filename, dst_bin_data)
+			save_file_data(bin_filename, dst_bin_data, g_timestamp)
 			# Returning archive blocks.
 			return [[zip_filename, dst_bin_data]]
 		# Python source module build command.
@@ -271,11 +278,10 @@ if __name__ == '__main__':
 				src_str_data = format_macros(load_file_str(src_filename, src_encoding), g_globalMacros)
 				# Getting parameters for compiler.
 				cmp_filename = join_path(os.path.basename(mod_filename), os.path.relpath(src_filename, mod_filename))
-				cmp_filetime = time.time()
 				# Compiling source block.
-				dst_bin_data = compile_python_string(src_str_data, cmp_filename, cmp_filetime)
+				dst_bin_data = compile_python_string(src_str_data, cmp_filename, g_timestamp)
 				# Saving binary file.
-				save_file_data(bin_filename, dst_bin_data)
+				save_file_data(bin_filename, dst_bin_data, g_timestamp)
 				# Appending archive block.
 				archive_blocks.append([zip_filename, dst_bin_data])
 			return archive_blocks
@@ -300,13 +306,11 @@ if __name__ == '__main__':
 			# Loading source as single block.
 			src_str_data = format_macros(load_source_string(src_filenames, src_encoding), g_globalMacros)
 			# Saving assembled file.
-			save_file_str(asm_filename, src_str_data, src_encoding)
-			# Getting parameters for compiler.
-			cmp_filetime = os.path.getmtime(asm_filename)
+			save_file_str(asm_filename, src_str_data, src_encoding, g_timestamp)
 			# Compiling source block.
-			dst_bin_data = compile_python_string(src_str_data, cmp_filename, cmp_filetime)
+			dst_bin_data = compile_python_string(src_str_data, cmp_filename, g_timestamp)
 			# Saving binary file.
-			save_file_data(bin_filename, dst_bin_data)
+			save_file_data(bin_filename, dst_bin_data, g_timestamp)
 			# Returning archive blocks.
 			return [[zip_filename, dst_bin_data]]
 		# Resource build command.
@@ -355,7 +359,7 @@ if __name__ == '__main__':
 				# Compiling portable object file.
 				dst_bin_data = compile_gettext_string(src_bin_data)
 				# Saving binary file.
-				save_file_data(bin_filename, dst_bin_data)
+				save_file_data(bin_filename, dst_bin_data, g_timestamp)
 				# Appending archive block.
 				archive_blocks.append([zip_filename, dst_bin_data])
 			return archive_blocks
@@ -466,7 +470,7 @@ if __name__ == '__main__':
 			#>> Assembling package.
 			dst_bin_data = compile_zipfile_string(package_blocks, compress=False)
 			#>> Saving binary file.
-			save_file_data(pkg_build, dst_bin_data)
+			save_file_data(pkg_build, dst_bin_data, g_timestamp)
 			# Returning archive blocks.
 			return [[pkg_release, dst_bin_data]]
 		# Archive build command.
@@ -497,7 +501,7 @@ if __name__ == '__main__':
 			#>>> Assembling archive.
 			dst_bin_data = compile_zipfile_string(archive_blocks, arh_comment, compress=True)
 			#>>> Saving binary file.
-			save_file_data(arh_archive, dst_bin_data)
+			save_file_data(arh_archive, dst_bin_data, g_timestamp)
 			# Returning archive name (release archives are final files).
 			return arh_archive
 		## Building release archives.
