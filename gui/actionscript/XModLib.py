@@ -31,8 +31,10 @@ if __name__ == '__main__':
 			'-external-library-path+=swc/wg/gui_battle.swc',
 			'-include-sources+=src'
 		])
-		# Starting flex.
-		return_code = subprocess.call(flex_args)
-	except:
+		# Calling flex and exiting with its termination code.
+		sys.exit(subprocess.call(flex_args))
+	except StandardError:
+		# Printing occurred error.
 		traceback.print_exc()
-	sys.exit(return_code)
+		# Exiting with abnormal termination code.
+		sys.exit(1)
