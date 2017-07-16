@@ -24,7 +24,11 @@ if __name__ == '__main__':
 			'java', '-Xmx384m', '-Dsun.io.useCanonCaches=false',
 			'-jar', '$FLEX_HOME/lib/compc.jar', '+flexlib=$FLEX_HOME/frameworks',
 			'-output', 'bin/XModLib.swc',
-			'-external-library-path+=swc/wg_battle.swc',
+			'-external-library-path+=swc/wg/base_app.swc',
+			'-external-library-path+=swc/wg/common.swc',
+			'-external-library-path+=swc/wg/battle.swc',
+			'-external-library-path+=swc/wg/gui_base.swc',
+			'-external-library-path+=swc/wg/gui_battle.swc',
 			'-include-sources+=src'
 		])
 		# Starting flex.
