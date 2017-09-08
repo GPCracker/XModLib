@@ -105,6 +105,20 @@ class VectorAsTupleXMLReaderMeta(XMLReaderMeta):
 			raise AttributeError('Vector type is undefined or None.')
 		return getattr(xmlSection, 'as' + self.vectorType).tuple() if xmlSection is not None else defSection
 
+class FormattedWideStringXMLReaderMeta(XMLReaderMeta):
+	__slots__ = ()
+
+	@classmethod
+	def construct(cls, className, formatter=None):
+		readerClass = super(FormattedWideStringXMLReaderMeta, cls).construct(className)
+		readerClass.formatter = staticmethod(formatter if formatter is not None else lambda string: string)
+		return readerClass
+
+	def _readSection(self, xmlSection, defSection):
+		if getattr(self, 'formatter', None) is None:
+			raise AttributeError('Formatter is undefined or None.')
+		return self.formatter(getattr(xmlSection, 'asWideString') if xmlSection is not None else defSection)
+
 class LocalizedWideStringXMLReaderMeta(XMLReaderMeta):
 	__slots__ = ()
 
@@ -195,6 +209,20 @@ class OptionalDictXMLReaderMeta(XMLReaderMeta):
 		if xmlSection is not None:
 			return {nestedName: self._readNestedSection(xmlSection[nestedName], defSection[nestedName]) for nestedName in defSection.iterkeys() if nestedName in self.requiredKeys or xmlSection[nestedName] is not None}
 		return {nestedName: self._readNestedSection(None, defSection[nestedName]) for nestedName in defSection.iterkeys() if nestedName in self.requiredKeys or nestedName in self.defaultKeys}
+
+class StringEnumXMLReaderMeta(XMLReaderMeta):
+	__slots__ = ()
+
+	@classmethod
+	def construct(cls, className, enumeration=None):
+		readerClass = super(StringEnumXMLReaderMeta, cls).construct(className)
+		readerClass.enumeration = staticmethod(enumeration if enumeration is not None else lambda string: string)
+		return readerClass
+
+	def _readSection(self, xmlSection, defSection):
+		if getattr(self, 'enumeration', None) is None:
+			raise AttributeError('Enumeration is undefined or None.')
+		return self.enumeration(getattr(xmlSection, 'asString') if xmlSection is not None else defSection)
 
 class DataObjectXMLReaderMeta(XMLReaderMeta):
 	__slots__ = ()
