@@ -1,14 +1,14 @@
 # Excluding actionscript binaries
-gui/actionscript/bin/
-gui/actionscript/obj/
-gui/actionscript/swc/
+gui/actionscript/bin
+gui/actionscript/obj
+gui/actionscript/swc
 # Excluding build
-build/
+build
 # Excluding release
-release/
+release
 # Excluding tools
-tools/
+tools
 # Excluding topic
-topic/
+topic
 # Excluding temp
-temp/
+temp
