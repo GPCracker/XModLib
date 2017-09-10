@@ -38,7 +38,7 @@ def getPlayerAimingInfo():
 	if aimingInfo is None or aimingInfo[0] == 0.0:
 		return None
 	aimingStartTime, aimingStartFactor, dispersionFactor, dispersionFactorTurretRotation, dispersionFactorChassisMovement, dispersionFactorChassisRotation, expAimingTime = aimingInfo
-	staticDispersionAngle = BigWorld.player().vehicleTypeDescriptor.gun['shotDispersionAngle']
+	staticDispersionAngle = BigWorld.player().vehicleTypeDescriptor.gun.shotDispersionAngle
 	return staticDispersionAngle, aimingStartTime, aimingStartFactor, dispersionFactor, expAimingTime
 
 def getAimingFactor(aimingStartTime, aimingStartFactor, dispersionFactor, expAimingTime, aimingFactorThreshold=1.05):

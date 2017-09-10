@@ -45,9 +45,9 @@ def _getLocalBoundsMatrixProvider(localCornerPoints):
 def getVehicleBoundsMatrixProvider(vehicle):
 	# Calculating vehicle component matrices: component offsets.
 	chassisOffsetMatrix = MathUtils.getIdentityMatrix()
-	hullOffsetMatrix = MathUtils.getTranslationMatrix(vehicle.typeDescriptor.chassis['hullPosition'])
-	turretOffsetMatrix = MathUtils.getTranslationMatrix(vehicle.typeDescriptor.hull['turretPositions'][0])
-	gunOffsetMatrix = MathUtils.getTranslationMatrix(vehicle.typeDescriptor.turret['gunPosition'])
+	hullOffsetMatrix = MathUtils.getTranslationMatrix(vehicle.typeDescriptor.chassis.hullPosition)
+	turretOffsetMatrix = MathUtils.getTranslationMatrix(vehicle.typeDescriptor.hull.turretPositions[0])
+	gunOffsetMatrix = MathUtils.getTranslationMatrix(vehicle.typeDescriptor.turret.gunPosition)
 	# Calculating vehicle component matrices: component transforms.
 	chassisTransformMatrixProvider = MathUtils.getMatrixProduct(MathUtils.getIdentityMatrix(), chassisOffsetMatrix)
 	hullTransformMatrixProvider = MathUtils.getMatrixProduct(MathUtils.getIdentityMatrix(), hullOffsetMatrix)
@@ -59,10 +59,10 @@ def getVehicleBoundsMatrixProvider(vehicle):
 	turretLocalMatrixProvider = MathUtils.getMatrixProduct(turretTransformMatrixProvider, hullLocalMatrixProvider)
 	gunLocalMatrixProvider = MathUtils.getMatrixProduct(gunTransformMatrixProvider, turretLocalMatrixProvider)
 	# Getting vehicle component bounding boxes.
-	chassisBoundingBox = vehicle.typeDescriptor.chassis['hitTester'].bbox
-	hullBoundingBox = vehicle.typeDescriptor.hull['hitTester'].bbox
-	turretBoundingBox = vehicle.typeDescriptor.turret['hitTester'].bbox
-	gunBoundingBox = vehicle.typeDescriptor.gun['hitTester'].bbox
+	chassisBoundingBox = vehicle.typeDescriptor.chassis.hitTester.bbox
+	hullBoundingBox = vehicle.typeDescriptor.hull.hitTester.bbox
+	turretBoundingBox = vehicle.typeDescriptor.turret.hitTester.bbox
+	gunBoundingBox = vehicle.typeDescriptor.gun.hitTester.bbox
 	# Getting vehicle component unit corner matrices.
 	unitCornerMatrices = list(_getUnitCornerMatricesIter())
 	# Getting vehicle local corner points for all components.

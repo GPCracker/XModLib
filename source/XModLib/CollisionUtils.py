@@ -93,8 +93,8 @@ def computeProjectileTrajectoryEnd(shotPoint, shotVector, shotGravity, colliders
 
 def computeVehicleProjectileTrajectoryEnd(vehicleTypeDescriptor, vehicleMatrix, turretYaw, gunPitch, colliders):
 	shotRay, shotPoint = VehicleMath.getShotRayAndPoint(vehicleTypeDescriptor, vehicleMatrix, turretYaw, gunPitch)
-	shotVector = shotRay.scale(vehicleTypeDescriptor.shot['speed'])
-	shotGravity = Math.Vector3(0, -1, 0).scale(vehicleTypeDescriptor.shot['gravity'])
+	shotVector = shotRay.scale(vehicleTypeDescriptor.shot.speed)
+	shotGravity = Math.Vector3(0, -1, 0).scale(vehicleTypeDescriptor.shot.gravity)
 	return computeProjectileTrajectoryEnd(shotPoint, shotVector, shotGravity, colliders)
 
 def computePlayerVehicleProjectileTrajectoryEnd(colliders):
