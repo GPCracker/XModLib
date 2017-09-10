@@ -69,7 +69,7 @@ def getLevel(vehicle):
 def getClass(vehicle):
 	if not isinstance(vehicle, (BigWorld.Entity, types.NoneType)):
 		vehicle = BigWorld.entity(vehicle)
-	return vehicle and tuple(vehicle.typeDescriptor.type.tags & items.vehicles.VEHICLE_CLASS_TAGS)[0]
+	return vehicle and next(iter(vehicle.typeDescriptor.type.tags & items.vehicles.VEHICLE_CLASS_TAGS))
 
 def getPlayerVehicleID():
 	return BigWorld.player().playerVehicleID

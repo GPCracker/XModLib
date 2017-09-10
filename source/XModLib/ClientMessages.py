@@ -67,7 +67,8 @@ class SystemMessageButton(dict):
 	'''
 	type('submit', 'cancel'), label, action, [width]
 	'''
-	def __init__(self):
+	def __init__(self, *args, **kwargs):
+		super(SystemMessageButton, self).__init__(*args, **kwargs)
 		self.setdefault('type', 'submit')
 		self.setdefault('label', '')
 		self.setdefault('action', '')
