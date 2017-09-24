@@ -85,7 +85,7 @@ def compile_atlas(dst_atlas, src_wildcards, src_basepath, ext_args=None):
 		raise RuntimeError('An error occured while assembling atlas.')
 	return
 
-def compile_zipfile_string(src_data_blocks, dst_bin_comment='', compress=False):
+def compile_zipfile_string(src_data_blocks, dst_bin_comment=b'', compress=False):
 	def get_parent_dirs(path):
 		def get_parent_dirs_inv(path):
 			while path:
@@ -192,22 +192,23 @@ def load_file_data(src_filename):
 		dst_bin_data = src_bin_buffer.read()
 	return dst_bin_data
 
-def load_file_str(src_filename, encoding='acsii'):
+def load_file_str(src_filename, encoding='ascii'):
 	return unicode(load_file_data(src_filename), encoding=encoding)
 
 def save_file_data(dst_filename, src_bin_data, timestamp=time.time()):
-	if not os.path.isdir(os.path.dirname(dst_filename)):
-		os.makedirs(os.path.dirname(dst_filename))
+	dst_dirname = norm_path(os.path.dirname(dst_filename))
+	if not os.path.isdir(dst_dirname):
+		os.makedirs(dst_dirname)
 	with open(dst_filename, 'wb') as dst_bin_buffer:
 		dst_bin_buffer.write(src_bin_data)
 	os.utime(dst_filename, (timestamp, timestamp))
 	return
 
-def save_file_str(dst_filename, src_str_data, encoding='acsii', timestamp=time.time()):
+def save_file_str(dst_filename, src_str_data, encoding='ascii', timestamp=time.time()):
 	save_file_data(dst_filename, src_str_data.encode(encoding=encoding), timestamp=timestamp)
 	return
 
-def load_source_string(src_filenames, source_encoding='acsii'):
+def load_source_string(src_filenames, source_encoding='ascii'):
 	return u'\n'.join([load_file_str(src_filename, encoding=source_encoding) for src_filename in get_path_groups_iterator(src_filenames)])
 
 if __name__ == '__main__':
