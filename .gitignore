@@ -2,10 +2,8 @@
 gui/actionscript/bin
 gui/actionscript/obj
 gui/actionscript/swc
-# Excluding build
-build
-# Excluding release
-release
+# Excluding output
+output
 # Excluding tools
 tools
 # Excluding topic
