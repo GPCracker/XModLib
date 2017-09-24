@@ -1,12 +1,14 @@
-# Excluding actionscript binaries
-gui/actionscript/bin
-gui/actionscript/obj
-gui/actionscript/swc
-# Excluding output
-output
-# Excluding tools
-tools
-# Excluding topic
-topic
-# Excluding temp
-temp
+# excluding actionscript binaries
+/gui/actionscript/bin
+/gui/actionscript/obj
+/gui/actionscript/swc
+
+# excluding output files
+/output
+
+# excluding builder tools
+/tools
+
+# excluding personal files
+/topic
+/temp
