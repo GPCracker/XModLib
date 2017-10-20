@@ -27,49 +27,49 @@ class Plane(tuple):
 	__slots__ = ()
 
 	@classmethod
-	def getXYPlane(sclass):
-		return sclass(Math.Vector3(0.0, 0.0, 0.0), Math.Vector3(0.0, 0.0, 1.0))
+	def getXYPlane(cls):
+		return cls(Math.Vector3(0.0, 0.0, 0.0), Math.Vector3(0.0, 0.0, 1.0))
 
 	@classmethod
-	def getXZPlane(sclass):
-		return sclass(Math.Vector3(0.0, 0.0, 0.0), Math.Vector3(0.0, 1.0, 0.0))
+	def getXZPlane(cls):
+		return cls(Math.Vector3(0.0, 0.0, 0.0), Math.Vector3(0.0, 1.0, 0.0))
 
 	@classmethod
-	def getYZPlane(sclass):
-		return sclass(Math.Vector3(0.0, 0.0, 0.0), Math.Vector3(1.0, 0.0, 0.0))
+	def getYZPlane(cls):
+		return cls(Math.Vector3(0.0, 0.0, 0.0), Math.Vector3(1.0, 0.0, 0.0))
 
 	@classmethod
-	def newA(sclass, point0, normal0):
+	def newA(cls, point0, normal0):
 		if not isinstance(point0, Math.Vector3):
 			raise TypeError('point0 must be an instance of Math.Vector3 class.')
 		if not isinstance(normal0, Math.Vector3):
 			raise TypeError('normal0 must be an instance of Math.Vector3 class.')
-		return sclass(point0, normal0)
+		return cls(point0, normal0)
 
 	@classmethod
-	def newB(sclass, point0, vector0, vector1):
+	def newB(cls, point0, vector0, vector1):
 		if not isinstance(point0, Math.Vector3):
 			raise TypeError('point0 must be an instance of Math.Vector3 class.')
 		if not isinstance(vector0, Math.Vector3):
 			raise TypeError('vector0 must be an instance of Math.Vector3 class.')
 		if not isinstance(vector1, Math.Vector3):
 			raise TypeError('vector1 must be an instance of Math.Vector3 class.')
-		return sclass(point0, vector0 * vector1)
+		return cls(point0, vector0 * vector1)
 
 	@classmethod
-	def newC(sclass, point0, point1, point2):
+	def newC(cls, point0, point1, point2):
 		if not isinstance(point0, Math.Vector3):
 			raise TypeError('point0 must be an instance of Math.Vector3 class.')
 		if not isinstance(point1, Math.Vector3):
 			raise TypeError('point1 must be an instance of Math.Vector3 class.')
 		if not isinstance(point2, Math.Vector3):
 			raise TypeError('point2 must be an instance of Math.Vector3 class.')
-		return sclass(point0, (point1 - point0) * (point2 - point0))
+		return cls(point0, (point1 - point0) * (point2 - point0))
 
-	def __new__(sclass, point, normal):
+	def __new__(cls, point, normal):
 		if not normal.lengthSquared:
 			raise RuntimeError('normal must be a vector with non-zero length.')
-		return super(Plane, sclass).__new__(sclass, (Math.Vector3(point), MathUtils.getNormalisedVector(normal)))
+		return super(Plane, cls).__new__(cls, (Math.Vector3(point), MathUtils.getNormalisedVector(normal)))
 
 	point = property(operator.itemgetter(0))
 	normal = property(operator.itemgetter(1))
@@ -146,7 +146,7 @@ class Plane(tuple):
 class _AxisAlignedBoundingBox(tuple):
 	__slots__ = ()
 
-	def __new__(sclass, point0, point1):
+	def __new__(cls, point0, point1):
 		if not isinstance(point0, Math.Vector3):
 			raise TypeError('point0 must be an instance of Math.Vector3 class.')
 		if not isinstance(point1, Math.Vector3):
@@ -155,7 +155,7 @@ class _AxisAlignedBoundingBox(tuple):
 		point1 = Math.Vector3(max([point0.x, point1.x]), max([point0.y, point1.y]), max([point0.z, point1.z]))
 		if not all((point1 - point0).tuple()):
 			raise RuntimeError('BoundingBox must have non-zero volume.')
-		return super(_AxisAlignedBoundingBox, sclass).__new__(sclass, (point0, point1))
+		return super(_AxisAlignedBoundingBox, cls).__new__(cls, (point0, point1))
 
 	point0 = property(operator.itemgetter(0))
 	point1 = property(operator.itemgetter(1))
@@ -262,26 +262,26 @@ class AxisAlignedBoundingBox(_AxisAlignedBoundingBox):
 	__slots__ = ()
 
 	@classmethod
-	def construct(sclass, flatBounds, heightLimits=(-500.0, 500.0)):
-		return sclass(
+	def construct(cls, flatBounds, heightLimits=(-500.0, 500.0)):
+		return cls(
 			Math.Vector3(flatBounds[0][0], heightLimits[0], flatBounds[0][1]),
 			Math.Vector3(flatBounds[1][0], heightLimits[1], flatBounds[1][1])
 		)
 
 	@classmethod
-	def getSpaceBoundingBox(sclass):
+	def getSpaceBoundingBox(cls):
 		bounds = BigWorld.wg_getSpaceBounds().tuple()
-		return sclass.construct((bounds[0:2], bounds[2:4]))
+		return cls.construct((bounds[0:2], bounds[2:4]))
 
 	@classmethod
-	def getArenaBoundingBox(sclass):
-		return sclass.construct(BigWorld.player().arena.arenaType.boundingBox)
+	def getArenaBoundingBox(cls):
+		return cls.construct(BigWorld.player().arena.arenaType.boundingBox)
 
 class UnitBoundingBox(_AxisAlignedBoundingBox):
 	__slots__ = ()
 
-	def __new__(sclass):
-		return super(UnitBoundingBox, sclass).__new__(sclass, Math.Vector3(0.0, 0.0, 0.0), Math.Vector3(1.0, 1.0, 1.0))
+	def __new__(cls):
+		return super(UnitBoundingBox, cls).__new__(cls, Math.Vector3(0.0, 0.0, 0.0), Math.Vector3(1.0, 1.0, 1.0))
 
 	def __repr__(self):
 		return '{}()'.format(self.__class__.__name__)
@@ -360,14 +360,14 @@ class BoundingBoxMatrixAdapter(object):
 class BoundingSphere(tuple):
 	__slots__ = ()
 
-	def __new__(sclass, center, radius):
+	def __new__(cls, center, radius):
 		if not isinstance(center, Math.Vector3):
 			raise TypeError('center must be an instance of Math.Vector3 class.')
 		if not isinstance(radius, Math.Vector3):
 			raise TypeError('radius must be an instance of Math.Vector3 class.')
 		if not radius.lengthSquared:
 			raise RuntimeError('BoundingSphere must have non-zero radius.')
-		return super(BoundingSphere, sclass).__new__(sclass, (center, radius))
+		return super(BoundingSphere, cls).__new__(cls, (center, radius))
 
 	center = property(operator.itemgetter(0))
 	radius = property(operator.itemgetter(1))
@@ -410,8 +410,8 @@ class BoundingSphere(tuple):
 class UnitBoundingSphere(BoundingSphere):
 	__slots__ = ()
 
-	def __new__(sclass):
-		return super(UnitBoundingSphere, sclass).__new__(sclass, Math.Vector3(0.5, 0.5, 0.5), Math.Vector3(0.5, 0.5, 0.5))
+	def __new__(cls):
+		return super(UnitBoundingSphere, cls).__new__(cls, Math.Vector3(0.5, 0.5, 0.5), Math.Vector3(0.5, 0.5, 0.5))
 
 	def __repr__(self):
 		return '{}()'.format(self.__class__.__name__)

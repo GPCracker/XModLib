@@ -27,8 +27,8 @@ from . import EngineUtils
 class MacrosFormatter(collections.namedtuple('MacrosFormatter', ('header', 'trailer'))):
 	__slots__ = ()
 
-	def __new__(sclass, header='{{', trailer='}}'):
-		return super(MacrosFormatter, sclass).__new__(sclass, header, trailer)
+	def __new__(cls, header='{{', trailer='}}'):
+		return super(MacrosFormatter, cls).__new__(cls, header, trailer)
 
 	def __call__(self, string, *args, **kwargs):
 		header, trailer = re.escape(self.header), re.escape(self.trailer)
@@ -45,8 +45,8 @@ class TranslationFile(io.BytesIO):
 
 	name = property(lambda self: self._filename)
 
-	def __new__(sclass, content=b'', filename='<string>'):
-		return super(TranslationFile, sclass).__new__(sclass, content)
+	def __new__(cls, content=b'', filename='<string>'):
+		return super(TranslationFile, cls).__new__(cls, content)
 
 	def __init__(self, content=b'', filename='<string>'):
 		super(TranslationFile, self).__init__(content)
@@ -77,8 +77,8 @@ class TranslatorsCache(dict):
 class TranslatorFormatter(collections.namedtuple('TranslatorFormatter', ('cache', 'header', 'delimiter', 'trailer'))):
 	__slots__ = ()
 
-	def __new__(sclass, cache, header='#', delimiter=':', trailer=';'):
-		return super(TranslatorFormatter, sclass).__new__(sclass, cache, header, delimiter, trailer)
+	def __new__(cls, cache, header='#', delimiter=':', trailer=';'):
+		return super(TranslatorFormatter, cls).__new__(cls, cache, header, delimiter, trailer)
 
 	def __call__(self, string):
 		header, delimiter, trailer = re.escape(self.header), re.escape(self.delimiter), re.escape(self.trailer)

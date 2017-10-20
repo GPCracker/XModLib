@@ -40,8 +40,8 @@ class Callback(int):
 			return False
 		return True
 
-	def __new__(sclass, time, callback):
-		return super(Callback, sclass).__new__(sclass, sclass._register(time, callback))
+	def __new__(cls, time, callback):
+		return super(Callback, cls).__new__(cls, cls._register(time, callback))
 
 	def __repr__(self):
 		return '{}({})'.format(self.__class__.__name__, super(Callback, self).__repr__())

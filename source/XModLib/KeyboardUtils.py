@@ -67,14 +67,14 @@ class KeyboardEvent(collections.namedtuple('KeyboardEvent', ('key', 'modifiers',
 		cmask = ~(MODIFIER_KEY2FLAG[event.key] if event.key in MODIFIER_KEYS and not BigWorld.isKeyDown(MODIFIER_PAIRS[event.key]) else 0x0)
 		return event.key, event.modifiers & cmask, event.isKeyDown(), event.isRepeatedEvent()
 
-	def __new__(sclass, event):
-		return super(KeyboardEvent, sclass).__new__(sclass, *sclass._parseEvent(event))
+	def __new__(cls, event):
+		return super(KeyboardEvent, cls).__new__(cls, *cls._parseEvent(event))
 
 class ShortcutHandle(collections.namedtuple('ShortcutHandle', ('switch', 'pushed'))):
 	__slots__ = ()
 
-	def __new__(sclass, switch, pushed):
-		return super(ShortcutHandle, sclass).__new__(sclass, switch, pushed)
+	def __new__(cls, switch, pushed):
+		return super(ShortcutHandle, cls).__new__(cls, switch, pushed)
 
 	def __call__(self, value):
 		return bool(value) != bool(self.pushed) if self.switch else bool(self.pushed)
@@ -108,8 +108,8 @@ class Shortcut(collections.namedtuple('Shortcut', ('key', 'modifiers', 'switch',
 			functools.reduce(operator.or_, itertools.imap(functools.partial(operator.getitem, MODIFIER_KEY2FLAG), modifiers), 0x0)
 		)
 
-	def __new__(sclass, sequence, switch=True, invert=False, repeat=False):
-		return super(Shortcut, sclass).__new__(sclass, *sclass._parseSequence(sequence), switch=switch, invert=invert, repeat=repeat)
+	def __new__(cls, sequence, switch=True, invert=False, repeat=False):
+		return super(Shortcut, cls).__new__(cls, *cls._parseSequence(sequence), switch=switch, invert=invert, repeat=repeat)
 
 	def __call__(self, kbevent):
 		if kbevent.key == self.key and kbevent.modifiers == self.modifiers and (not kbevent.repeat or self.repeat):

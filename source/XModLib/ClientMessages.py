@@ -97,7 +97,7 @@ class SystemMessageFormatter(messenger.formatters.service_channel.ServiceChannel
 
 class _SystemMessageActionHandler(notification.actions_handlers._ActionHandler):
 	@classmethod
-	def getNotType(sclass):
+	def getNotType(cls):
 		return notification.settings.NOTIFICATION_TYPE.MESSAGE
 
 	@staticmethod
@@ -106,11 +106,11 @@ class _SystemMessageActionHandler(notification.actions_handlers._ActionHandler):
 		return
 
 	@classmethod
-	def install(sclass):
+	def install(cls):
 		actionsHandlers = notification.NotificationMVC.g_instance._NotificationMVC__actionsHandlers
 		if actionsHandlers is not None:
-			actionsHandlers._NotificationsActionsHandlers__multi[sclass.getNotType()].add(sclass)
-		notification.actions_handlers._AVAILABLE_HANDLERS += (sclass, )
+			actionsHandlers._NotificationsActionsHandlers__multi[cls.getNotType()].add(cls)
+		notification.actions_handlers._AVAILABLE_HANDLERS += (cls, )
 		return
 
 def SystemMessageActionHandler(handler):
