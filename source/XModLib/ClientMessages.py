@@ -3,7 +3,7 @@
 # *************************
 # Python
 # *************************
-# Nothing
+import collections
 
 # *************************
 # BigWorld
@@ -74,6 +74,12 @@ class SystemMessageButton(dict):
 		self.setdefault('action', '')
 		return
 
+class SystemMessageData(collections.namedtuple('SystemMessageData', ('data', 'settings'))):
+	__slots__ = ()
+
+	def __new__(cls, data=None, settings=None):
+		return super(SystemMessageData, cls).__new__(cls, data, settings)
+
 class SystemMessageFormatter(messenger.formatters.service_channel.ServiceChannelFormatter):
 	def _getGuiSettings(self, auxData=None):
 		return gui.shared.notifications.NotificationGuiSettings(isNotify=self.isNotify(), auxData=auxData)
@@ -89,7 +95,7 @@ class SystemMessageFormatter(messenger.formatters.service_channel.ServiceChannel
 		formatted.setdefault('filters', list())
 		formatted.setdefault('savedData', None)
 		formatted.setdefault('buttonsLayout', list())
-		return formatted, self._getGuiSettings(*args)
+		return [SystemMessageData(formatted, self._getGuiSettings(*args)), ]
 
 	def install(self, msgType):
 		messenger.formatters.collections_by_type.CLIENT_FORMATTERS[msgType] = self
