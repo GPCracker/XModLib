@@ -140,6 +140,30 @@ def doClassMethodAdd(target, method, hook):
 		setattr(target, method, hook.__get__(types.TypeType(target), types.TypeType))
 	return hook
 
+def doPropertyAdd(target, method, action, hook):
+	if not isinstance(target, (types.TypeType, types.ClassType)):
+		raise TypeError('Property adding may be used only on classes, not on instances.')
+	if not hasattr(target, method):
+		setattr(target, method, property(
+			fget=None,
+			fset=None,
+			fdel=None
+		))
+	iproperty = getattr(target, method)
+	if not isinstance(iproperty, property):
+		raise TypeError('This class variable is already defined and is not a property.')
+	if not isinstance(action, PropertyAction):
+		raise ValueError('Incorrect property action.')
+	kwargs = {
+		'fget': iproperty.fget,
+		'fset': iproperty.fset,
+		'fdel': iproperty.fdel,
+		'doc': iproperty.__doc__
+	}
+	kwargs[action.value] = hook
+	setattr(target, method, property(**kwargs))
+	return hook
+
 def doMethodHook(target, method, hook, invoke=HookInvoke.DEFAULT, enabled=True):
 	origin = getattr(target, method).__func__
 	override = HookFunction(hook, origin, invoke, enabled)
@@ -169,18 +193,16 @@ def doClassMethodHook(target, method, hook, invoke=HookInvoke.DEFAULT, enabled=T
 
 def doPropertyHook(target, method, action, varname, hook, invoke=HookInvoke.DEFAULT, enabled=True):
 	if not isinstance(target, (types.TypeType, types.ClassType)):
-		raise TypeError('Property hook may be used only on classes, not on instances.')
-	if hasattr(target, method):
-		iproperty = getattr(target, method)
-		if not isinstance(iproperty, property):
-			raise TypeError('This class variable is already defined and is not a property.')
-	else:
-		iproperty = property(
-			functools.partial(lambda instance, varname: getattr(instance, varname), varname=varname),
-			functools.partial(lambda instance, value, varname: setattr(instance, varname, value), varname=varname),
-			functools.partial(lambda instance, varname: delattr(instance, varname), varname=varname)
-		)
-		setattr(target, method, iproperty)
+		raise TypeError('Property hooking may be used only on classes, not on instances.')
+	if not hasattr(target, method):
+		setattr(target, method, property(
+			fget=functools.partial(lambda instance, varname: getattr(instance, varname), varname=varname),
+			fset=functools.partial(lambda instance, value, varname: setattr(instance, varname, value), varname=varname),
+			fdel=functools.partial(lambda instance, varname: delattr(instance, varname), varname=varname)
+		))
+	iproperty = getattr(target, method)
+	if not isinstance(iproperty, property):
+		raise TypeError('This class variable is already defined and is not a property.')
 	if not isinstance(action, PropertyAction):
 		raise ValueError('Incorrect property action.')
 	kwargs = {
@@ -203,6 +225,10 @@ def doStaticMethodAddExt(event, target, method, hook):
 
 def doClassMethodAddExt(event, target, method, hook):
 	event += functools.partial(doClassMethodAdd, target, method, hook)
+	return hook
+
+def doPropertyAddExt(event, target, method, action, hook):
+	event += functools.partial(doPropertyAdd, target, method, action, hook)
 	return hook
 
 def doMethodHookExt(event, target, method, hook, invoke=HookInvoke.DEFAULT, enabled=True):
@@ -230,6 +256,9 @@ def staticMethodAdd(target, method):
 def classMethodAdd(target, method):
 	return functools.partial(doClassMethodAdd, target, method)
 
+def propertyAdd(target, method, action):
+	return functools.partial(doPropertyAdd, target, method, action)
+
 def methodHook(target, method, invoke=HookInvoke.DEFAULT, enabled=True):
 	return functools.partial(doMethodHook, target, method, invoke=invoke, enabled=enabled)
 
@@ -250,6 +279,9 @@ def staticMethodAddExt(event, target, method):
 
 def classMethodAddExt(event, target, method):
 	return functools.partial(doClassMethodAddExt, event, target, method)
+
+def propertyAddExt(event, target, method, action):
+	return functools.partial(doPropertyAddExt, event, target, method, action)
 
 def methodHookExt(event, target, method, invoke=HookInvoke.DEFAULT, enabled=True):
 	return functools.partial(doMethodHookExt, event, target, method, invoke=invoke, enabled=enabled)
