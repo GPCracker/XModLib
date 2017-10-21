@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import io
 import os
 import re
@@ -42,7 +44,7 @@ def compile_flash_project(fdp_filename):
 		print '--------------------'
 		print stderr_data
 		print '<<< [FDBuild stderr]'
-		raise RuntimeError('An error occured while compiling ActionScript project.')
+		raise RuntimeError('An error occurred while compiling ActionScript project.')
 	return
 
 def compile_python_string(source, filename='<string>', filetime=time.time()):
@@ -63,7 +65,7 @@ def compile_gettext_string(src_bin_data):
 	gettext_process = subprocess.Popen([msgfmt, '-', '-o', '-'], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
 	dst_bin_data = gettext_process.communicate(src_bin_data)[0]
 	if gettext_process.poll():
-		raise RuntimeError('An error occured while compiling localization file.')
+		raise RuntimeError('An error occurred while compiling localization file.')
 	return dst_bin_data
 
 def compile_atlas(dst_atlas, src_wildcards, src_basepath, ext_args=None):
@@ -82,7 +84,7 @@ def compile_atlas(dst_atlas, src_wildcards, src_basepath, ext_args=None):
 		print '--------------------'
 		print stderr_data
 		print '<<< [atlscnv stderr]'
-		raise RuntimeError('An error occured while assembling atlas.')
+		raise RuntimeError('An error occurred while assembling atlas.')
 	return
 
 def compile_zipfile_string(src_data_blocks, dst_bin_comment=b'', compress=False):
@@ -112,7 +114,7 @@ def acquire_build_version():
 		git = 'tools/git-scm/bin/git.exe'
 	else:
 		raise RuntimeError('Current operation system is not supported.')
-	args = [git, 'describe', '--match=v*', '--dirty']
+	args = [git, 'describe', '--match=v[0-9]*', '--dirty']
 	git_process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 	vcs_str_data = git_process.communicate()[0].strip()
 	if git_process.poll():
@@ -126,7 +128,7 @@ def acquire_build_signature(build_time):
 		git = 'tools/git-scm/bin/git.exe'
 	else:
 		raise RuntimeError('Current operation system is not supported.')
-	args = [git, 'describe', '--match=v*', '--dirty', '--long']
+	args = [git, 'describe', '--match=v[0-9]*', '--dirty', '--long']
 	git_process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 	vcs_str_data = git_process.communicate()[0].strip()
 	if git_process.poll():
