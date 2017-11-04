@@ -43,8 +43,8 @@ class Callback(int):
 	def __new__(cls, time, callback):
 		return super(Callback, cls).__new__(cls, cls._register(time, callback))
 
-	def __repr__(self):
-		return '{}({})'.format(self.__class__.__name__, super(Callback, self).__repr__())
+	__repr__ = object.__repr__
+	__str__ = object.__str__
 
 	def __del__(self):
 		self._cancel(self)
@@ -54,28 +54,35 @@ class CallbackLoopType(enum.Enum):
 	SINGLE = 'single'
 	STATIC = 'static'
 	DYNAMIC = 'dynamic'
+	DEFAULT = STATIC
 
 class CallbackLoop(object):
 	__slots__ = ('__weakref__', '_interval', '_function', '_calltype', '_callback')
 
-	def __init__(self, interval, function, calltype=CallbackLoopType.STATIC):
+	def __init__(self, interval, function, calltype=CallbackLoopType.DEFAULT):
+		if not isinstance(interval, (int, float)):
+			raise TypeError('interval argument must be int or float, not {}'.format(type(interval).__name__))
+		if not isinstance(calltype, CallbackLoopType):
+			raise TypeError('calltype argument must be CallbackLoopType, not {}'.format(type(calltype).__name__))
 		self._interval = interval
 		self._function = function
 		self._calltype = calltype
 		self._callback = None
 		return
 
+	interval = property(lambda self: self._interval)
+	function = property(lambda self: self._function)
+	calltype = property(lambda self: self._calltype)
+
 	@property
 	def isActive(self):
 		return self._callback is not None
 
-	def _schedule(self, interval):
-		return Callback(interval, getMethodProxy(self._callloop))
+	def _schedule(self, delay):
+		return Callback(delay, getMethodProxy(self._cbmethod))
 
-	def _callloop(self):
-		if not isinstance(self._calltype, CallbackLoopType):
-			raise ValueError('Incorrect callback loop type.')
-		if self.isActive:
+	def _cbmethod(self):
+		if self._callback is not None:
 			if self._calltype == CallbackLoopType.SINGLE:
 				self._callback = None
 				self._function()
@@ -88,14 +95,14 @@ class CallbackLoop(object):
 		return
 
 	def start(self, delay=None):
-		if self.isActive:
-			raise RuntimeError('Callback loop is already started.')
+		if self._callback is not None:
+			raise RuntimeError('callback loop is already started')
 		self._callback = self._schedule(delay if delay is not None else self._interval)
 		return
 
 	def stop(self):
-		if not self.isActive:
-			raise RuntimeError('Callback loop is not active.')
+		if self._callback is None:
+			raise RuntimeError('callback loop is not active')
 		self._callback = None
 		return
 
