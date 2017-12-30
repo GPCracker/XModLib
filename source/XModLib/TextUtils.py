@@ -72,7 +72,7 @@ class TranslatorsCache(dict):
 		return self[domain].gettext(message)
 
 	def __repr__(self):
-		return '{}({})'.format(self.__class__.__name__, super(TranslatorsCache, self).__repr__())
+		return '{!s}({!s})'.format(self.__class__.__name__, super(TranslatorsCache, self).__repr__())
 
 class TranslatorFormatter(collections.namedtuple('TranslatorFormatter', ('cache', 'header', 'delimiter', 'trailer'))):
 	__slots__ = ()

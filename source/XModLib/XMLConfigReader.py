@@ -74,7 +74,7 @@ class XMLReaderMeta(object):
 		return self._readSection(xmlSection, defSection, **kwargs)
 
 	def __repr__(self):
-		return '{}(readerName={!r}, collectionProxy={!r})'.format(self.__class__.__name__, self.readerName, self.collectionProxy)
+		return '{!s}(readerName={!r}, collectionProxy={!r})'.format(self.__class__.__name__, self.readerName, self.collectionProxy)
 
 	def __del__(self):
 		return
@@ -275,9 +275,9 @@ def testXmlPath(xmlPath):
 def openSection(xmlPath, ignoreMissing=True):
 	status, breakpoint = testXmlPath(xmlPath)
 	if status == XMLConfigStatus.CORRUPTED:
-		raise RuntimeError('ResMgr path \'{}\' is based on corrupted data file \'{}\'.'.format(xmlPath, breakpoint))
+		raise RuntimeError('ResMgr path \'{!s}\' is based on corrupted data file \'{!s}\'.'.format(xmlPath, breakpoint))
 	elif status == XMLConfigStatus.MISSING and not ignoreMissing:
-		raise RuntimeError('ResMgr path \'{}\' is based on missing data file. Breakpoint at \'{}\'.'.format(xmlPath, breakpoint))
+		raise RuntimeError('ResMgr path \'{!s}\' is based on missing data file. Breakpoint at \'{!s}\'.'.format(xmlPath, breakpoint))
 	return ResMgr.openSection(xmlPath)
 
 def overrideSection(xmlSection, ignoreMissing=True):
@@ -321,7 +321,7 @@ class XMLReaderCollection(dict):
 		return
 
 	def __repr__(self):
-		return '{}:{}'.format(object.__repr__(self), super(XMLReaderCollection, self).__repr__())
+		return '{!s}:{!s}'.format(object.__repr__(self), super(XMLReaderCollection, self).__repr__())
 
 	def _parseDefaultItem(self, defItem):
 		if isinstance(defItem, dict):

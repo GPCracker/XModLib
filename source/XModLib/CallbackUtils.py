@@ -61,9 +61,9 @@ class CallbackLoop(object):
 
 	def __init__(self, interval, function, calltype=CallbackLoopType.DEFAULT):
 		if not isinstance(interval, (int, float)):
-			raise TypeError('interval argument must be int or float, not {}'.format(type(interval).__name__))
+			raise TypeError('interval argument must be int or float, not {!s}'.format(type(interval).__name__))
 		if not isinstance(calltype, CallbackLoopType):
-			raise TypeError('calltype argument must be CallbackLoopType, not {}'.format(type(calltype).__name__))
+			raise TypeError('calltype argument must be CallbackLoopType, not {!s}'.format(type(calltype).__name__))
 		self._interval = interval
 		self._function = function
 		self._calltype = calltype
@@ -107,7 +107,7 @@ class CallbackLoop(object):
 		return
 
 	def __repr__(self):
-		return '{}(interval={!r}, function={!r}, calltype={!r})'.format(self.__class__.__name__, self._interval, self._function, self._calltype)
+		return '{!s}(interval={!r}, function={!r}, calltype={!r})'.format(self.__class__.__name__, self._interval, self._function, self._calltype)
 
 	def __del__(self):
 		self._callback = None

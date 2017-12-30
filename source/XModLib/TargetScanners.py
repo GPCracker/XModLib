@@ -38,7 +38,7 @@ class _TargetScanner(object):
 		return
 
 	def __repr__(self):
-		return '{}(filterID={!r}, filterVehicle={!r})'.format(self.__class__.__name__, self.filterID, self.filterVehicle)
+		return '{!s}(filterID={!r}, filterVehicle={!r})'.format(self.__class__.__name__, self.filterID, self.filterVehicle)
 
 class StandardScanner(_TargetScanner):
 	__slots__ = ()
@@ -61,7 +61,7 @@ class _AdvancedScanner(_TargetScanner):
 		return
 
 	def __repr__(self):
-		return '{}(filterID={!r}, filterVehicle={!r}, maxDistance={!r}, skipPlayer={!r})'.format(self.__class__.__name__, self.filterID, self.filterVehicle, self.maxDistance, self.skipPlayer)
+		return '{!s}(filterID={!r}, filterVehicle={!r}, maxDistance={!r}, skipPlayer={!r})'.format(self.__class__.__name__, self.filterID, self.filterVehicle, self.maxDistance, self.skipPlayer)
 
 	def _getScanRayAndPoint(self):
 		scanDir, scanStart = AvatarInputHandler.cameras.getWorldRayAndPoint(*BigWorld.player().inputHandler.ctrl._aimOffset)
@@ -80,7 +80,7 @@ class XRayScanner(_AdvancedScanner):
 		return
 
 	def __repr__(self):
-		return '{}(filterID={!r}, filterVehicle={!r}, maxDistance={!r}, skipGun={!r}, skipPlayer={!r})'.format(self.__class__.__name__, self.filterID, self.filterVehicle, self.maxDistance, self.skipGun, self.skipPlayer)
+		return '{!s}(filterID={!r}, filterVehicle={!r}, maxDistance={!r}, skipGun={!r}, skipPlayer={!r})'.format(self.__class__.__name__, self.filterID, self.filterVehicle, self.maxDistance, self.skipGun, self.skipPlayer)
 
 	def _scanTarget(self, scanStart, scanStop, entities):
 		scanResult = CollisionUtils.collideVehicles(entities, scanStart, scanStop, self.skipGun)
@@ -105,7 +105,7 @@ class _BoundingScanner(_AdvancedScanner):
 		return
 
 	def __repr__(self):
-		return '{}(filterID={!r}, filterVehicle={!r}, maxDistance={!r}, boundsScalar={!r}, skipPlayer={!r})'.format(self.__class__.__name__, self.filterID, self.filterVehicle, self.maxDistance, self.boundsScalar, self.skipPlayer)
+		return '{!s}(filterID={!r}, filterVehicle={!r}, maxDistance={!r}, boundsScalar={!r}, skipPlayer={!r})'.format(self.__class__.__name__, self.filterID, self.filterVehicle, self.maxDistance, self.boundsScalar, self.skipPlayer)
 
 	def _getScaleMatrix(self):
 		scaleMatrix = MathUtils.getScaleMatrix(Math.Vector3(1.0, 1.0, 1.0).scale(self.boundsScalar))
