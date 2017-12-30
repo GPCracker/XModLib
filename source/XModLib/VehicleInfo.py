@@ -1,26 +1,29 @@
-# Authors: GPCracker
+# Authors: Vladislav Ignatenko <gpcracker@mail.ru>
 
-# *************************
-# Python
-# *************************
+# ------------ #
+#    Python    #
+# ------------ #
 import types
 
-# *************************
-# BigWorld
-# *************************
+# -------------- #
+#    BigWorld    #
+# -------------- #
 import BigWorld
 
-# *************************
-# WoT Client
-# *************************
+# ---------------- #
+#    WoT Client    #
+# ---------------- #
 import Vehicle
 import items.vehicles
 
-# *************************
-# X-Mod Library
-# *************************
-# Nothing
+# ------------------- #
+#    X-Mod Library    #
+# ------------------- #
+# nothing
 
+# -------------------- #
+#    Module Content    #
+# -------------------- #
 def isVehicle(entity):
 	if not isinstance(entity, (BigWorld.Entity, types.NoneType)):
 		entity = BigWorld.entity(entity)

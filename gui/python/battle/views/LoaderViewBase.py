@@ -1,25 +1,28 @@
-# Authors: GPCracker
+# Authors: Vladislav Ignatenko <gpcracker@mail.ru>
 
-# *************************
-# Python
-# *************************
-# Nothing
+# ------------ #
+#    Python    #
+# ------------ #
+# nothing
 
-# *************************
-# BigWorld
-# *************************
-# Nothing
+# -------------- #
+#    BigWorld    #
+# -------------- #
+# nothing
 
-# *************************
-# WoT Client
-# *************************
-# Nothing
+# ---------------- #
+#    WoT Client    #
+# ---------------- #
+# nothing
 
-# *************************
-# X-Mod Library
-# *************************
+# ------------------- #
+#    X-Mod Library    #
+# ------------------- #
 from .LoaderViewBaseMeta import LoaderViewBaseMeta
 
+# -------------------- #
+#    Module Content    #
+# -------------------- #
 class LoaderViewBase(LoaderViewBaseMeta):
 	def _populate(self):
 		super(LoaderViewBase, self)._populate()

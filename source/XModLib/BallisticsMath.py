@@ -1,26 +1,29 @@
-# Authors: GPCracker
+# Authors: Vladislav Ignatenko <gpcracker@mail.ru>
 
-# *************************
-# Python
-# *************************
+# ------------ #
+#    Python    #
+# ------------ #
 import math
 
-# *************************
-# BigWorld
-# *************************
+# -------------- #
+#    BigWorld    #
+# -------------- #
 import Math
 import BigWorld
 
-# *************************
-# WoT Client
-# *************************
-# Nothing
+# ---------------- #
+#    WoT Client    #
+# ---------------- #
+# nothing
 
-# *************************
-# X-Mod Library
-# *************************
+# ------------------- #
+#    X-Mod Library    #
+# ------------------- #
 from . import VehicleMath
 
+# -------------------- #
+#    Module Content    #
+# -------------------- #
 def getPlayerAimingInfo():
 	'''
 	PlayerVehicleTypeDescriptor parameters:

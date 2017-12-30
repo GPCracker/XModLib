@@ -1,27 +1,30 @@
-# Authors: GPCracker
+# Authors: Vladislav Ignatenko <gpcracker@mail.ru>
 
-# *************************
-# Python
-# *************************
+# ------------ #
+#    Python    #
+# ------------ #
 import itertools
 
-# *************************
-# BigWorld
-# *************************
+# -------------- #
+#    BigWorld    #
+# -------------- #
 import Math
 import BigWorld
 
-# *************************
-# WoT Client
-# *************************
+# ---------------- #
+#    WoT Client    #
+# ---------------- #
 import constants
 
-# *************************
-# X-Mod Library
-# *************************
+# ------------------- #
+#    X-Mod Library    #
+# ------------------- #
 from . import MathUtils
 from . import VehicleMath
 
+# -------------------- #
+#    Module Content    #
+# -------------------- #
 def collideStatic(startPoint, endPoint, collisionFlags=128, resultFilter=None):
 	'''
 	BigWorld.wg_collideSegment(spaceID, start, end, collFlags, lambda matKind, collFlags, itemId, chunkId: True) --> (point, normal, matKind, ???(pos), itemId, chunkId) or None

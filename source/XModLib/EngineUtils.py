@@ -1,25 +1,28 @@
-# Authors: GPCracker
+# Authors: Vladislav Ignatenko <gpcracker@mail.ru>
 
-# *************************
-# Python
-# *************************
+# ------------ #
+#    Python    #
+# ------------ #
 import os.path
 
-# *************************
-# BigWorld
-# *************************
+# -------------- #
+#    BigWorld    #
+# -------------- #
 import ResMgr
 
-# *************************
-# WoT Client
-# *************************
-# Nothing
+# ---------------- #
+#    WoT Client    #
+# ---------------- #
+# nothing
 
-# *************************
-# X-Mod Library
-# *************************
-# Nothing
+# ------------------- #
+#    X-Mod Library    #
+# ------------------- #
+# nothing
 
+# -------------------- #
+#    Module Content    #
+# -------------------- #
 def joinResMgrPath(*args):
 	return os.path.normpath(os.path.join(*args)).replace(os.sep, '/')
 

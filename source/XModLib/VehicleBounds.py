@@ -1,26 +1,29 @@
-# Authors: GPCracker
+# Authors: Vladislav Ignatenko <gpcracker@mail.ru>
 
-# *************************
-# Python
-# *************************
+# ------------ #
+#    Python    #
+# ------------ #
 import functools
 import itertools
 
-# *************************
-# BigWorld
-# *************************
+# -------------- #
+#    BigWorld    #
+# -------------- #
 import Math
 
-# *************************
-# WoT Client
-# *************************
-# Nothing
+# ---------------- #
+#    WoT Client    #
+# ---------------- #
+# nothing
 
-# *************************
-# X-Mod Library
-# *************************
+# ------------------- #
+#    X-Mod Library    #
+# ------------------- #
 from . import MathUtils
 
+# -------------------- #
+#    Module Content    #
+# -------------------- #
 def _getUnitCornerMatricesIter():
 	return itertools.imap(MathUtils.getTranslationMatrix, itertools.starmap(Math.Vector3, itertools.product(xrange(2), repeat=3)))
 

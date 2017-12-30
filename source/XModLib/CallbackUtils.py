@@ -1,27 +1,30 @@
-# Authors: GPCracker
+# Authors: Vladislav Ignatenko <gpcracker@mail.ru>
 
-# *************************
-# Python
-# *************************
+# ------------ #
+#    Python    #
+# ------------ #
 import enum
 import weakref
 import functools
 
-# *************************
-# BigWorld
-# *************************
+# -------------- #
+#    BigWorld    #
+# -------------- #
 import BigWorld
 
-# *************************
-# WoT Client
-# *************************
-# Nothing
+# ---------------- #
+#    WoT Client    #
+# ---------------- #
+# nothing
 
-# *************************
-# X-Mod Library
-# *************************
-# Nothing
+# ------------------- #
+#    X-Mod Library    #
+# ------------------- #
+# nothing
 
+# -------------------- #
+#    Module Content    #
+# -------------------- #
 def getMethodProxy(method, *args, **kwargs):
 	return functools.partial(weakref.proxy(method.im_func), weakref.proxy(method.im_self), *args, **kwargs)
 

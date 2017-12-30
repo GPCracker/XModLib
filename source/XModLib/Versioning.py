@@ -1,28 +1,31 @@
-# Authors: GPCracker
+# Authors: Vladislav Ignatenko <gpcracker@mail.ru>
 
-# *************************
-# Python
-# *************************
+# ------------ #
+#    Python    #
+# ------------ #
 import re
 import functools
 import itertools
 import collections
 
-# *************************
-# BigWorld
-# *************************
-# Nothing
+# -------------- #
+#    BigWorld    #
+# -------------- #
+# nothing
 
-# *************************
-# WoT Client
-# *************************
-# Nothing
+# ---------------- #
+#    WoT Client    #
+# ---------------- #
+# nothing
 
-# *************************
-# X-Mod Library
-# *************************
-# Nothing
+# ------------------- #
+#    X-Mod Library    #
+# ------------------- #
+# nothing
 
+# -------------------- #
+#    Module Content    #
+# -------------------- #
 class Version(tuple):
 	__slots__ = ()
 

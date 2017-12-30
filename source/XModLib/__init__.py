@@ -4,9 +4,9 @@ __authors__ = ('GPCracker', )
 __version__ = ('<<version>>', None)
 __client__ = (('ru', ), '<<client>>', None)
 
-# *************************
-# Application info
-# *************************
+# ---------------------- #
+#    Application info    #
+# ---------------------- #
 if __name__ == '__main__':
 	applicationInfo = '{appname} ({appshort}) {version} ({client} {clusters}) by {authors}'.format(
 		appname = __application__[0],
@@ -20,9 +20,9 @@ if __name__ == '__main__':
 	__import__('time').sleep(len(applicationInfo) * 0.05)
 	exit()
 
-# *************************
-# Compatibility test
-# *************************
+# -------------------------------------- #
+#    X-Mod Library compatibility test    #
+# -------------------------------------- #
 from . import Versioning
 
 def isCompatibleLibVersion(application=(None, None), xmodlib=__version__):

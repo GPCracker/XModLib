@@ -1,28 +1,31 @@
-# Authors: GPCracker
+# Authors: Vladislav Ignatenko <gpcracker@mail.ru>
 
-# *************************
-# Python
-# *************************
-# Nothing
+# ------------ #
+#    Python    #
+# ------------ #
+# nothing
 
-# *************************
-# BigWorld
-# *************************
-# Nothing
+# -------------- #
+#    BigWorld    #
+# -------------- #
+# nothing
 
-# *************************
-# WoT Client
-# *************************
+# ---------------- #
+#    WoT Client    #
+# ---------------- #
 import gui.Scaleform.framework
 import gui.Scaleform.framework.ViewTypes
 import gui.Scaleform.framework.ScopeTemplates
 import gui.Scaleform.framework.entities.BaseDAAPIComponent
 
-# *************************
-# X-Mod Library
-# *************************
-# Nothing
+# ------------------- #
+#    X-Mod Library    #
+# ------------------- #
+# nothing
 
+# -------------------- #
+#    Module Content    #
+# -------------------- #
 class BattleViewComponentBase(gui.Scaleform.framework.entities.BaseDAAPIComponent.BaseDAAPIComponent):
 	@classmethod
 	def getSettings(sclass, alias):

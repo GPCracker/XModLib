@@ -1,26 +1,29 @@
-# Authors: GPCracker
+# Authors: Vladislav Ignatenko <gpcracker@mail.ru>
 
-# *************************
-# Python
-# *************************
-# Nothing
+# ------------ #
+#    Python    #
+# ------------ #
+# nothing
 
-# *************************
-# BigWorld
-# *************************
+# -------------- #
+#    BigWorld    #
+# -------------- #
 import Math
 import BigWorld
 
-# *************************
-# WoT Client
-# *************************
-# Nothing
+# ---------------- #
+#    WoT Client    #
+# ---------------- #
+# nothing
 
-# *************************
-# X-Mod Library
-# *************************
-# Nothing
+# ------------------- #
+#    X-Mod Library    #
+# ------------------- #
+# nothing
 
+# -------------------- #
+#    Module Content    #
+# -------------------- #
 def getVehicleHeight(vehicle):
 	typeDesc = vehicle.typeDescriptor
 	hullPositionY = typeDesc.chassis.hullPosition[1]

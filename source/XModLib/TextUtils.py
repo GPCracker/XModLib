@@ -1,29 +1,32 @@
-# Authors: GPCracker
+# Authors: Vladislav Ignatenko <gpcracker@mail.ru>
 
-# *************************
-# Python
-# *************************
+# ------------ #
+#    Python    #
+# ------------ #
 import io
 import re
 import errno
 import gettext
 import collections
 
-# *************************
-# BigWorld
-# *************************
+# -------------- #
+#    BigWorld    #
+# -------------- #
 import ResMgr
 
-# *************************
-# WoT Client
-# *************************
-# Nothing
+# ---------------- #
+#    WoT Client    #
+# ---------------- #
+# nothing
 
-# *************************
-# X-Mod Library
-# *************************
+# ------------------- #
+#    X-Mod Library    #
+# ------------------- #
 from . import EngineUtils
 
+# -------------------- #
+#    Module Content    #
+# -------------------- #
 class MacrosFormatter(collections.namedtuple('MacrosFormatter', ('header', 'trailer'))):
 	__slots__ = ()
 

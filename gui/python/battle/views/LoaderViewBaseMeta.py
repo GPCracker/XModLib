@@ -1,28 +1,31 @@
-# Authors: GPCracker
+# Authors: Vladislav Ignatenko <gpcracker@mail.ru>
 
-# *************************
-# Python
-# *************************
-# Nothing
+# ------------ #
+#    Python    #
+# ------------ #
+# nothing
 
-# *************************
-# BigWorld
-# *************************
-# Nothing
+# -------------- #
+#    BigWorld    #
+# -------------- #
+# nothing
 
-# *************************
-# WoT Client
-# *************************
+# ---------------- #
+#    WoT Client    #
+# ---------------- #
 import gui.Scaleform.framework
 import gui.Scaleform.framework.ViewTypes
 import gui.Scaleform.framework.ScopeTemplates
 import gui.Scaleform.framework.entities.View
 
-# *************************
-# X-Mod Library
-# *************************
-# Nothing
+# ------------------- #
+#    X-Mod Library    #
+# ------------------- #
+# nothing
 
+# -------------------- #
+#    Module Content    #
+# -------------------- #
 class LoaderViewBaseMeta(gui.Scaleform.framework.entities.View.View):
 	@classmethod
 	def getSettings(sclass, alias, swf):

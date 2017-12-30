@@ -1,27 +1,30 @@
-# Authors: GPCracker
+# Authors: Vladislav Ignatenko <gpcracker@mail.ru>
 
-# *************************
-# Python
-# *************************
+# ------------ #
+#    Python    #
+# ------------ #
 import string
 import itertools
 
-# *************************
-# BigWorld
-# *************************
-# Nothing
+# -------------- #
+#    BigWorld    #
+# -------------- #
+# nothing
 
-# *************************
-# WoT Client
-# *************************
+# ---------------- #
+#    WoT Client    #
+# ---------------- #
 import helpers
 import constants
 
-# *************************
-# X-Mod Library
-# *************************
+# ------------------- #
+#    X-Mod Library    #
+# ------------------- #
 from . import Versioning
 
+# -------------------- #
+#    Module Content    #
+# -------------------- #
 def getClientVersion():
 	realm = constants.CURRENT_REALM.lower()
 	version = helpers.getShortClientVersion().strip()

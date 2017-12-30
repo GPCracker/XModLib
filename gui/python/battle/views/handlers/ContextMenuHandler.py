@@ -1,27 +1,30 @@
-# Authors: GPCracker
+# Authors: Vladislav Ignatenko <gpcracker@mail.ru>
 
-# *************************
-# Python
-# *************************
-# Nothing
+# ------------ #
+#    Python    #
+# ------------ #
+# nothing
 
-# *************************
-# BigWorld
-# *************************
-# Nothing
+# -------------- #
+#    BigWorld    #
+# -------------- #
+# nothing
 
-# *************************
-# WoT Client
-# *************************
+# ---------------- #
+#    WoT Client    #
+# ---------------- #
 import gui.shared
 import gui.shared.events
 import gui.Scaleform.framework.managers.context_menu
 
-# *************************
-# X-Mod Library
-# *************************
-# Nothing
+# ------------------- #
+#    X-Mod Library    #
+# ------------------- #
+# nothing
 
+# -------------------- #
+#    Module Content    #
+# -------------------- #
 class ContextMenuHandler(gui.Scaleform.framework.managers.context_menu.AbstractContextMenuHandler):
 	@classmethod
 	def getHandler(cls, alias):

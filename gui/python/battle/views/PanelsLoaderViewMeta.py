@@ -1,25 +1,28 @@
-# Authors: GPCracker
+# Authors: Vladislav Ignatenko <gpcracker@mail.ru>
 
-# *************************
-# Python
-# *************************
-# Nothing
+# ------------ #
+#    Python    #
+# ------------ #
+# nothing
 
-# *************************
-# BigWorld
-# *************************
-# Nothing
+# -------------- #
+#    BigWorld    #
+# -------------- #
+# nothing
 
-# *************************
-# WoT Client
-# *************************
-# Nothing
+# ---------------- #
+#    WoT Client    #
+# ---------------- #
+# nothing
 
-# *************************
-# X-Mod Library
-# *************************
+# ------------------- #
+#    X-Mod Library    #
+# ------------------- #
 from .LoaderViewBase import LoaderViewBase
 
+# -------------------- #
+#    Module Content    #
+# -------------------- #
 class PanelsLoaderViewMeta(LoaderViewBase):
 	def as_createBattlePagePanelS(self, panelAlias, panelClass, panelIndex):
 		if self._isDAAPIInited():

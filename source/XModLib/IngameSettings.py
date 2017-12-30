@@ -1,27 +1,30 @@
-# Authors: GPCracker
+# Authors: Vladislav Ignatenko <gpcracker@mail.ru>
 
-# *************************
-# Python
-# *************************
+# ------------ #
+#    Python    #
+# ------------ #
 import base64
 import cPickle
 import functools
 
-# *************************
-# BigWorld
-# *************************
+# -------------- #
+#    BigWorld    #
+# -------------- #
 import ResMgr
 
-# *************************
-# WoT Client
-# *************************
+# ---------------- #
+#    WoT Client    #
+# ---------------- #
 import Settings
 
-# *************************
-# X-Mod Library
-# *************************
+# ------------------- #
+#    X-Mod Library    #
+# ------------------- #
 from . import XMLConfigReader
 
+# -------------------- #
+#    Module Content    #
+# -------------------- #
 def openPreferences(sectionPath, newSection=False):
 	section = Settings.g_instance.userPrefs[sectionPath]
 	if section is None and newSection:

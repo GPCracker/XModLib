@@ -1,30 +1,33 @@
-# Authors: GPCracker
+# Authors: Vladislav Ignatenko <gpcracker@mail.ru>
 
-# *************************
-# Python
-# *************************
+# ------------ #
+#    Python    #
+# ------------ #
 import itertools
 
-# *************************
-# BigWorld
-# *************************
+# -------------- #
+#    BigWorld    #
+# -------------- #
 import BigWorld
 import Math
 
-# *************************
-# WoT Client
-# *************************
+# ---------------- #
+#    WoT Client    #
+# ---------------- #
 import AvatarInputHandler.cameras
 
-# *************************
-# X-Mod Library
-# *************************
+# ------------------- #
+#    X-Mod Library    #
+# ------------------- #
 from . import MathUtils
 from . import VehicleInfo
 from . import VehicleBounds
 from . import CollisionUtils
 from . import AnalyticGeometry
 
+# -------------------- #
+#    Module Content    #
+# -------------------- #
 def getCollidableEntities(filterID=None, filterVehicle=None, skipPlayer=True):
 	return CollisionUtils.getVisibleVehicles(filterID, filterVehicle, skipPlayer)
 

@@ -1,26 +1,29 @@
-# Authors: GPCracker
+# Authors: Vladislav Ignatenko <gpcracker@mail.ru>
 
-# *************************
-# Python
-# *************************
-# Nothing
+# ------------ #
+#    Python    #
+# ------------ #
+# nothing
 
-# *************************
-# BigWorld
-# *************************
-# Nothing
+# -------------- #
+#    BigWorld    #
+# -------------- #
+# nothing
 
-# *************************
-# WoT Client
-# *************************
+# ---------------- #
+#    WoT Client    #
+# ---------------- #
 import gui.shared
 import gui.shared.events
 
-# *************************
-# X-Mod Library
-# *************************
+# ------------------- #
+#    X-Mod Library    #
+# ------------------- #
 from .TextPanelMeta import TextPanelMeta
 
+# -------------------- #
+#    Module Content    #
+# -------------------- #
 class TextPanel(TextPanelMeta):
 	@staticmethod
 	def _computeConfigPatch(update, base):
