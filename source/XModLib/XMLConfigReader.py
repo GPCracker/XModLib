@@ -24,6 +24,7 @@ import ResMgr
 # ------------------- #
 #    X-Mod Library    #
 # ------------------- #
+from . import TextUtils
 from . import EngineUtils
 
 # -------------------- #
@@ -439,7 +440,11 @@ class XMLReaderCollection(dict):
 		('Internal', InternalXMLReaderMeta.construct('InternalXMLReader')),
 		('Vector2AsTuple', VectorAsTupleXMLReaderMeta.construct('Vector2AsTupleXMLReader', vectorType='Vector2')),
 		('Vector3AsTuple', VectorAsTupleXMLReaderMeta.construct('Vector3AsTupleXMLReader', vectorType='Vector3')),
-		('Vector4AsTuple', VectorAsTupleXMLReaderMeta.construct('Vector4AsTupleXMLReader', vectorType='Vector4'))
+		('Vector4AsTuple', VectorAsTupleXMLReaderMeta.construct('Vector4AsTupleXMLReader', vectorType='Vector4')),
+		('LocalizedWideString', LocalizedWideStringXMLReaderMeta.construct(
+			'LocalizedWideStringXMLReader',
+			translator=TextUtils.getDefaultTranslationFormatter()
+		))
 	)
 
 	@classmethod
