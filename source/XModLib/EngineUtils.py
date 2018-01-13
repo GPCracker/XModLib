@@ -23,14 +23,31 @@ import ResMgr
 # -------------------- #
 #    Module Content    #
 # -------------------- #
-def joinResMgrPath(*args):
-	return os.path.normpath(os.path.join(*args)).replace(os.sep, '/')
+def joinResMgrPath(path, *paths):
+	if any(os.path.isabs(component) for component in paths):
+		raise TypeError('additional components must not contain absolute paths')
+	return os.path.normpath(os.path.join(path, *paths)).replace(os.sep, '/')
 
 def resolveResMgrPath(path):
+	if os.path.isabs(path):
+		raise TypeError('relative path expected, got absolute')
 	return os.path.relpath(ResMgr.resolveToAbsolutePath(path)).replace(os.sep, '/')
 
 def getResMgrBasePath(path):
-	return joinResMgrPath(resolveResMgrPath(path), os.path.relpath('.', path))
+	if os.path.isabs(path):
+		raise TypeError('relative path expected, got absolute')
+	return joinResMgrPath(resolveResMgrPath(path), os.path.relpath(os.curdir, path))
+
+def getResMgrRelPath(path, base=os.curdir):
+	return os.path.relpath(path, base).replace(os.sep, '/')
+
+def iterResMgrPathComponents(path, base=os.curdir):
+	def iternames(path):
+		while path:
+			path, name = os.path.split(path)
+			yield name
+		return
+	return reversed(tuple(iternames(os.path.relpath(path, base))))
 
 def getResMgrBinaryFileContent(path):
 	if ResMgr.isFile(path):
