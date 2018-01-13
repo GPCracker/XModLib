@@ -389,23 +389,31 @@ def testXmlPath(xmlPath):
 		return XMLSectionStatus.MISSING, xmlPath
 	return testXmlPath(xmlDirname)
 
-def openSection(xmlPath, missing=XMLSectionError.NOTICE, corrupted=XMLSectionError.STRICT):
-	status, breakpoint = testXmlPath(xmlPath)
-	if status == XMLSectionStatus.CORRUPTED:
+def openXmlSection(xmlPath, missing=XMLSectionError.NOTICE, corrupted=XMLSectionError.STRICT):
+	xmlSectionStatus, xmlFilePath = testXmlPath(xmlPath)
+	if xmlSectionStatus == XMLSectionStatus.CORRUPTED:
 		if not isinstance(corrupted, XMLSectionError):
 			raise TypeError('corrupted argument must be XMLSectionError, not {!s}'.format(type(corrupted).__name__))
 		if corrupted == XMLSectionError.STRICT:
-			raise RuntimeError('ResMgr path {!r} is based on a corrupted data file {!r}'.format(xmlPath, breakpoint))
+			raise RuntimeError('ResMgr path {!r} is based on a corrupted data file {!r}'.format(xmlPath, xmlFilePath))
 		elif corrupted == XMLSectionError.NOTICE:
-			print >> sys.stderr, '{!s}: ResMgr path {!r} is based on a corrupted data file {!r}'.format(__name__, xmlPath, breakpoint)
-	elif status == XMLSectionStatus.MISSING:
+			print >> sys.stderr, '{!s}: ResMgr path {!r} is based on a corrupted data file {!r}'.format(__name__, xmlPath, xmlFilePath)
+	elif xmlSectionStatus == XMLSectionStatus.MISSING:
 		if not isinstance(missing, XMLSectionError):
 			raise TypeError('missing argument must be XMLSectionError, not {!s}'.format(type(missing).__name__))
 		if missing == XMLSectionError.STRICT:
-			raise RuntimeError('ResMgr path {!r} is based on a missing data file {!r}'.format(xmlPath, breakpoint))
+			raise RuntimeError('ResMgr path {!r} is based on a missing data file {!r}'.format(xmlPath, xmlFilePath))
 		elif missing == XMLSectionError.NOTICE:
-			print >> sys.stderr, '{!s}: ResMgr path {!r} is based on a missing data file {!r}'.format(__name__, xmlPath, breakpoint)
-	return ResMgr.openSection(xmlPath)
+			print >> sys.stderr, '{!s}: ResMgr path {!r} is based on a missing data file {!r}'.format(__name__, xmlPath, xmlFilePath)
+	return ResMgr.openSection(xmlPath), xmlFilePath
+
+def openSection(xmlPath, missing=XMLSectionError.NOTICE, corrupted=XMLSectionError.STRICT):
+	xmlSection, xmlFilePath = openXmlSection(xmlPath, missing=missing, corrupted=corrupted)
+	return xmlSection
+
+def openFileSection(xmlPath, missing=XMLSectionError.NOTICE, corrupted=XMLSectionError.STRICT):
+	xmlSection, xmlFilePath = openXmlSection(xmlPath, missing=missing, corrupted=corrupted)
+	return ResMgr.openSection(xmlFilePath), EngineUtils.getResMgrRelPath(xmlPath, xmlFilePath)
 
 def overrideSection(xmlSection, missing=XMLSectionError.NOTICE, corrupted=XMLSectionError.STRICT):
 	override = xmlSection['override'] if xmlSection is not None else None
@@ -413,6 +421,28 @@ def overrideSection(xmlSection, missing=XMLSectionError.NOTICE, corrupted=XMLSec
 		xmlSection = openSection(override.asString, missing=missing, corrupted=corrupted)
 		xmlSection = overrideSection(xmlSection, missing=missing, corrupted=corrupted)
 	return xmlSection
+
+def overrideSubSection(xmlSection, xmlSubPath, missing=XMLSectionError.NOTICE, corrupted=XMLSectionError.STRICT):
+	for xmlPathComponent in EngineUtils.iterResMgrPathComponents(xmlSubPath):
+		xmlSection = xmlSection[xmlPathComponent] if xmlSection is not None else None
+		xmlSection = overrideSection(xmlSection, missing=missing, corrupted=corrupted)
+	return xmlSection
+
+def overrideOpenSection(xmlPath, missing=XMLSectionError.NOTICE, corrupted=XMLSectionError.STRICT):
+	xmlSection = openSection(xmlPath, missing=missing, corrupted=corrupted)
+	return overrideSection(xmlSection, missing=missing, corrupted=corrupted)
+
+def overrideOpenFileSection(xmlPath, missing=XMLSectionError.NOTICE, corrupted=XMLSectionError.STRICT):
+	xmlFileSection, xmlSubPath = openFileSection(xmlPath, missing=missing, corrupted=corrupted)
+	return overrideSection(xmlFileSection, missing=missing, corrupted=corrupted), xmlSubPath
+
+def overrideOpenSubSection(xmlPath, xmlSubPath, missing=XMLSectionError.NOTICE, corrupted=XMLSectionError.STRICT):
+	xmlSection = overrideOpenSection(xmlPath, missing=missing, corrupted=corrupted)
+	return overrideSubSection(xmlSection, xmlSubPath, missing=missing, corrupted=corrupted)
+
+def overrideOpenFileSubSection(xmlPath, missing=XMLSectionError.NOTICE, corrupted=XMLSectionError.STRICT):
+	xmlFileSection, xmlSubPath = overrideOpenFileSection(xmlPath, missing=missing, corrupted=corrupted)
+	return overrideSubSection(xmlFileSection, xmlSubPath, missing=missing, corrupted=corrupted)
 
 class XMLReaderCollectionMetaclass(SlotsMetaclass):
 	__slots__ = ()
