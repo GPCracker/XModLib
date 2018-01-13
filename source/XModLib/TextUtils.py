@@ -106,6 +106,22 @@ def getStandardMacrosFormatter(*args, **kwargs):
 def getExtendedMacrosFormatter(*args, **kwargs):
 	return ExtendedMacrosFormattersCollection(default=StringMacrosFormatter(*args, **kwargs))
 
+def formatStandardTemplate(template, *args, **kwargs):
+	formatter = StandardMacrosFormattersCollection(default=StringMacrosFormatter(*args, **kwargs))
+	return MacrosFormatterTemplate(template, formatter.escapechars)(formatter)
+
+def formatExtendedTemplate(template, *args, **kwargs):
+	formatter = ExtendedMacrosFormattersCollection(default=StringMacrosFormatter(*args, **kwargs))
+	return MacrosFormatterTemplate(template, formatter.escapechars)(formatter)
+
+def getStandardTemplateExt(template, *args, **kwargs):
+	formatter = StandardMacrosFormattersCollection(default=StringMacrosFormatter(*args, **kwargs))
+	return MacrosFormatterTemplateExt(MacrosFormatterTemplate(template, formatter.escapechars), formatter)
+
+def getExtendedTemplateExt(template, *args, **kwargs):
+	formatter = ExtendedMacrosFormattersCollection(default=StringMacrosFormatter(*args, **kwargs))
+	return MacrosFormatterTemplateExt(MacrosFormatterTemplate(template, formatter.escapechars), formatter)
+
 class UnicodeUnescapeMacrosFormatter(object):
 	__slots__ = ()
 
@@ -332,3 +348,18 @@ class MacrosFormatterTemplate(_MacrosFormatterSubTemplate):
 
 	def __repr__(self):
 		return '<{!s} [chunks={!s}]>'.format(object.__repr__(self).strip('<>'), tuple.__repr__(self))
+
+class MacrosFormatterTemplateExt(collections.namedtuple('MacrosFormatterTemplateExt', ('template', 'formatter'))):
+	__slots__ = ()
+
+	def __new__(cls, template, formatter=lambda macrotype, formatspec: formatspec):
+		if not isinstance(template, MacrosFormatterTemplate):
+			raise TypeError('template argument must be MacrosFormatterTemplate, not {!s}'.format(type(template).__name__))
+		if not callable(formatter):
+			raise TypeError('formatter argument must be callable, not {!s}'.format(type(formatter).__name__))
+		return super(MacrosFormatterTemplateExt, cls).__new__(cls, template, formatter)
+
+	def __call__(self, *args, **kwargs):
+		if isinstance(self.formatter, StandardMacrosFormattersCollection):
+			self.formatter.setnewargs(*args, **kwargs)
+		return self.template(self.formatter)
