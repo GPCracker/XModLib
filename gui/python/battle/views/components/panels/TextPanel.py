@@ -24,7 +24,7 @@ from .TextPanelMeta import TextPanelMeta
 class TextPanel(TextPanelMeta):
 	@staticmethod
 	def _computeConfigPatch(update, base):
-		return {key: value for key, value in update.viewitems() - base.viewitems() if key in base}
+		return {key: value for key, value in update.viewitems() if key in base and base[key] != value}
 
 	def __init__(self, *args, **kwargs):
 		super(TextPanel, self).__init__(*args, **kwargs)
