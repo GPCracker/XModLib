@@ -474,6 +474,16 @@ class XMLReaderCollection(dict):
 		('LocalizedWideString', LocalizedWideStringXMLReaderMeta.construct(
 			'LocalizedWideStringXMLReader',
 			translator=TextUtils.getDefaultTranslationFormatter()
+		)),
+		('LocalizedStandardTemplate', DataObjectXMLReaderMeta.construct(
+			'LocalizedStandardTemplateXMLReader',
+			constructor=TextUtils.getStandardTemplateExt,
+			sectionType='LocalizedWideString'
+		)),
+		('LocalizedExtendedTemplate', DataObjectXMLReaderMeta.construct(
+			'LocalizedExtendedTemplateXMLReader',
+			constructor=TextUtils.getExtendedTemplateExt,
+			sectionType='LocalizedWideString'
 		))
 	)
 
