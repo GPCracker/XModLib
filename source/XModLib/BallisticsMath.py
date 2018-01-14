@@ -44,16 +44,15 @@ def getPlayerAimingInfo():
 	staticDispersionAngle = BigWorld.player().vehicleTypeDescriptor.gun.shotDispersionAngle
 	return staticDispersionAngle, aimingStartTime, aimingStartFactor, dispersionFactor, expAimingTime
 
-def getAimingFactor(aimingStartTime, aimingStartFactor, dispersionFactor, expAimingTime, aimingFactorThreshold=1.05):
-	#Every <expAimingTime> seconds dispersion decreases EXP times.
-	deltaTime = aimingStartTime - BigWorld.time()
-	deltaFactor = aimingStartFactor / dispersionFactor
-	if abs(deltaFactor) < aimingFactorThreshold:
-		return dispersionFactor
-	return aimingStartFactor * math.exp(deltaTime / expAimingTime)
+def getAimingFactor(aimingStartTime, aimingStartFactor, dispersionFactor, expAimingTime, aimingThreshold=1.05):
+	# Calculates current aiming factor.
+	negElapsedTime = aimingStartTime - BigWorld.time()
+	if aimingStartFactor / dispersionFactor >= aimingThreshold:
+		return aimingStartFactor * math.exp(negElapsedTime / expAimingTime)
+	return dispersionFactor
 
 def getFullAimingTime(aimingStartFactor, dispersionFactor, expAimingTime):
-	#Calculates time required for dispersion decreasing <aimingStartFactor>/<shotDispersionFactor> times.
+	# Calculates time required for dispersion decreasing <aimingStartFactor>/<gunDispersionFactor> times.
 	return expAimingTime * math.log(aimingStartFactor / dispersionFactor)
 
 def getRemainingAimingTime(aimingStartTime, fullAimingTime):
@@ -62,14 +61,14 @@ def getRemainingAimingTime(aimingStartTime, fullAimingTime):
 def getDispersionAngle(dispersionAngle, aimingFactor):
 	return dispersionAngle * aimingFactor
 
-def getDeviation(aimingDistance, dispersionAngle):
-	return aimingDistance * dispersionAngle
+def getDeviation(dispersionAngle, aimingDistance):
+	return dispersionAngle * aimingDistance
 
 def getBallisticsInfo(vehicleTypeDescriptor, vehicleMP, targetPoint):
 	turretYaw, gunPitch = VehicleMath.getShotAngles(vehicleTypeDescriptor, vehicleMP, targetPoint)
 	shotPoint, shotVector, shotGravity, shotMaxDistance = VehicleMath.getVehicleShotParams(vehicleTypeDescriptor, Math.Matrix(vehicleMP), turretYaw, gunPitch)
 	flyTime = targetPoint.flatDistTo(shotPoint) / shotVector.flatDistTo(Math.Vector3(0.0, 0.0, 0.0))
-	return targetPoint.distTo(shotPoint), (shotVector + shotGravity * flyTime).pitch, flyTime
+	return targetPoint.distTo(shotPoint), flyTime, shotVector.pitch, (shotVector + shotGravity * flyTime).pitch
 
 def getPlayerBallisticsInfo():
 	player = BigWorld.player()
