@@ -38,7 +38,7 @@ if __name__ == '__main__':
 			'-external-library-path+=swc/wg/battle.swc',
 			'-external-library-path+=swc/wg/gui_base.swc',
 			'-external-library-path+=swc/wg/gui_battle.swc',
-			'-include-sources+=src'
+			'-include-sources+=slb'
 		])
 		# Calling flex and exiting with its termination code.
 		sys.exit(subprocess.call(args))
