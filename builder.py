@@ -24,27 +24,26 @@ def detect_flex():
 		elif os.name == 'nt':
 			flex_home = '$LOCALAPPDATA/FlashDevelop/Apps/flexsdk/4.6.0'
 		else:
-			raise RuntimeError('Current operation system is not supported.')
-		os.environ['FLEX_HOME'] = os.path.expandvars(flex_home)
+			raise RuntimeError('current operation system is not supported')
+		os.environ['FLEX_HOME'] = os.path.normpath(os.path.expandvars(flex_home))
 	return
 
 def compile_flash_project(fdp_filename):
-	args = ['tools/fdbuild/fdbuild.exe', '-notrace', '-compiler:$FLEX_HOME', fdp_filename]
-	if os.name == 'posix':
-		args.insert(0, 'mono')
-	elif os.name != 'nt':
-		raise RuntimeError('Current operation system is not supported.')
+	if os.name not in ('posix', 'nt'):
+		raise RuntimeError('current operation system is not supported')
+	args = ['mono', ] if os.name == 'posix' else []
+	args += [os.path.normpath('tools/fdbuild/fdbuild.exe'), ]
+	args += ['-notrace', '-compiler:$FLEX_HOME', fdp_filename]
 	args = map(os.path.expandvars, args)
 	fdbuild_process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 	stdout_data, stderr_data = fdbuild_process.communicate()
 	if fdbuild_process.poll():
-		# Output compiler return.
 		print '[FDBuild stdout] >>>'
 		print stdout_data
 		print '--------------------'
 		print stderr_data
 		print '<<< [FDBuild stderr]'
-		raise RuntimeError('An error occurred while compiling ActionScript project.')
+		raise RuntimeError('an error occurred while compiling ActionScript project')
 	return
 
 def compile_python_string(source, filename='<string>', filetime=time.time()):
@@ -61,11 +60,12 @@ def compile_gettext_string(src_bin_data):
 	elif os.name == 'nt':
 		msgfmt = 'tools/gettext/msgfmt.exe'
 	else:
-		raise RuntimeError('Current operation system is not supported.')
-	gettext_process = subprocess.Popen([msgfmt, '-', '-o', '-'], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+		raise RuntimeError('current operation system is not supported')
+	args = map(os.path.expandvars, [os.path.normpath(msgfmt), '-', '-o', '-'])
+	gettext_process = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
 	dst_bin_data = gettext_process.communicate(src_bin_data)[0]
 	if gettext_process.poll():
-		raise RuntimeError('An error occurred while compiling localization file.')
+		raise RuntimeError('an error occurred while compiling localization file')
 	return dst_bin_data
 
 def compile_atlas(dst_atlas, src_wildcards, src_basepath, ext_args=None):
@@ -78,13 +78,12 @@ def compile_atlas(dst_atlas, src_wildcards, src_basepath, ext_args=None):
 	atlscnv_process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 	stdout_data, stderr_data = atlscnv_process.communicate()
 	if atlscnv_process.poll():
-		# Output assembler return.
 		print '[atlscnv stdout] >>>'
 		print stdout_data
 		print '--------------------'
 		print stderr_data
 		print '<<< [atlscnv stderr]'
-		raise RuntimeError('An error occurred while assembling atlas.')
+		raise RuntimeError('an error occurred while assembling atlas')
 	return
 
 def compile_zipfile_string(src_data_blocks, dst_bin_comment=b'', compress=False):
@@ -113,8 +112,8 @@ def acquire_build_version():
 	elif os.name == 'nt':
 		git = 'tools/git-scm/bin/git.exe'
 	else:
-		raise RuntimeError('Current operation system is not supported.')
-	args = [git, 'describe', '--match=v[0-9]*', '--dirty']
+		raise RuntimeError('current operation system is not supported')
+	args = map(os.path.expandvars, [os.path.normpath(git), 'describe', '--match=v[0-9]*', '--dirty'])
 	git_process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 	vcs_str_data = git_process.communicate()[0].strip()
 	if git_process.poll():
@@ -127,8 +126,8 @@ def acquire_build_signature(build_time):
 	elif os.name == 'nt':
 		git = 'tools/git-scm/bin/git.exe'
 	else:
-		raise RuntimeError('Current operation system is not supported.')
-	args = [git, 'describe', '--match=v[0-9]*', '--dirty', '--long']
+		raise RuntimeError('current operation system is not supported')
+	args = map(os.path.expandvars, [os.path.normpath(git), 'describe', '--match=v[0-9]*', '--dirty', '--long'])
 	git_process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 	vcs_str_data = git_process.communicate()[0].strip()
 	if git_process.poll():
@@ -158,7 +157,8 @@ def norm_path(path):
 	return path + ('/' if os.path.isdir(path) else '')
 
 def get_path_group_iterator(path_group, home='./'):
-	# Resolves path group. If path group is a folder, returns list of files inside, or dot otherwise.
+	# Resolves path group. Returns dot for a single file.
+	# Returns full list of files for directories.
 	_path = join_path(home, path_group)
 	if os.path.isfile(_path):
 		yield norm_path('./')
@@ -234,7 +234,8 @@ if __name__ == '__main__':
 		print ' Build version: {}.'.format(g_version)
 		print ' Build signature: {}.'.format(g_signature)
 		## Loading macros.
-		g_globalMacros = {macro: format_macros(replace, {'<<version>>': g_version, '<<signature>>': g_signature}) for macro, replace in g_config["globalMacros"].viewitems()}
+		g_builderMacros = {'<<version>>': g_version, '<<signature>>': g_signature}
+		g_globalMacros = {macro: format_macros(replace, g_builderMacros) for macro, replace in g_config["globalMacros"].viewitems()}
 		g_pathsMacros = {macro: format_macros(replace, g_globalMacros) for macro, replace in g_config["pathsMacros"].viewitems()}
 		g_metaMacros = {macro.replace('<<', '{{').replace('>>', '}}'): replace for macro, replace in g_globalMacros.viewitems()}
 		g_allMacros = merge_dicts(g_globalMacros, g_pathsMacros)
@@ -253,26 +254,16 @@ if __name__ == '__main__':
 		# FlashDevelop project build command.
 		def g_actionscriptBuildProject(src_entry, level=0):
 			# Parsing ActionScript entry.
-			prj_filename, asm_filename, bin_filename, zip_filename = src_entry
+			prj_filename, asm_entries = src_entry
 			# Formatting macros.
 			prj_filename = norm_path(format_macros(prj_filename, g_allMacros))
-			asm_filename = norm_path(format_macros(asm_filename, g_allMacros))
-			bin_filename = norm_path(format_macros(bin_filename, g_allMacros))
-			zip_filename = norm_path(format_macros(zip_filename, g_allMacros))
 			# Printing status.
 			indent = ' ' * level
 			print indent + 'Building FlashDevelop file: {}.'.format(prj_filename)
-			print indent + ' Build result file: {}.'.format(asm_filename)
-			print indent + ' Target binary file: {}.'.format(bin_filename)
-			print indent + ' Target package file: {}.'.format(zip_filename)
 			# Compiling FlashDevelop project.
 			compile_flash_project(prj_filename)
-			# Loading binary file.
-			dst_bin_data = load_file_data(asm_filename)
-			# Saving binary file.
-			save_file_data(bin_filename, dst_bin_data, g_timestamp)
 			# Returning archive blocks.
-			return [[zip_filename, dst_bin_data]]
+			return list(itertools.chain.from_iterable(g_resourceBuildEntry(asm_entry, level + 1) for asm_entry in asm_entries))
 		# Python source module build command.
 		def g_pythonBuildSourceModule(src_entry, src_encoding, level=0):
 			# Formatting macros.

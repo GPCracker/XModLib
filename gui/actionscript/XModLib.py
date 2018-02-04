@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import os
 import sys
 import shutil
@@ -11,8 +13,8 @@ def detect_flex():
 		elif os.name == 'nt':
 			flex_home = '$LOCALAPPDATA/FlashDevelop/Apps/flexsdk/4.6.0'
 		else:
-			raise RuntimeError('Current operation system is not supported.')
-		os.environ['FLEX_HOME'] = os.path.expandvars(flex_home)
+			raise RuntimeError('current operation system is not supported')
+		os.environ['FLEX_HOME'] = os.path.normpath(os.path.expandvars(flex_home))
 	return
 
 if __name__ == '__main__':
@@ -20,9 +22,16 @@ if __name__ == '__main__':
 		# Detecting flex.
 		detect_flex()
 		# Calculating args.
-		flex_args = map(os.path.expandvars, [
-			'java', '-Xmx384m', '-Dsun.io.useCanonCaches=false',
-			'-jar', '$FLEX_HOME/lib/compc.jar', '+flexlib=$FLEX_HOME/frameworks',
+		if os.name == 'posix':
+			compc = '$FLEX_HOME/bin/compc'
+		elif os.name == 'nt':
+			compc = '$FLEX_HOME/bin/compc.exe'
+			if not os.path.isfile(os.path.expandvars(compc)):
+				compc = '$FLEX_HOME/bin/compc.bat'
+		else:
+			raise RuntimeError('current operation system is not supported')
+		args = map(os.path.expandvars, [
+			os.path.normpath(compc),
 			'-output', 'bin/XModLib.swc',
 			'-external-library-path+=swc/wg/base_app.swc',
 			'-external-library-path+=swc/wg/common.swc',
@@ -32,7 +41,7 @@ if __name__ == '__main__':
 			'-include-sources+=src'
 		])
 		# Calling flex and exiting with its termination code.
-		sys.exit(subprocess.call(flex_args))
+		sys.exit(subprocess.call(args))
 	except StandardError:
 		# Printing occurred error.
 		traceback.print_exc()
