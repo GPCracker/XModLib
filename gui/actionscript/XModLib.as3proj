@@ -2,7 +2,7 @@
 <project version="2">
 	<!-- Output SWF options -->
 	<output>
-		<movie outputType="CustomBuild" />
+		<movie outputType="Application" />
 		<movie input="" />
 		<movie path="bin/XModLib.swf" />
 		<movie fps="60" />
@@ -16,6 +16,7 @@
 	<!-- Other classes to be compiled into your SWF -->
 	<classpaths>
 		<class path="slb" />
+		<class path="src" />
 	</classpaths>
 	<!-- Build options -->
 	<build>
@@ -42,7 +43,7 @@
 		<option linkReport="" />
 		<option loadExterns="" />
 		<option staticLinkRSL="True" />
-		<option additional="" />
+		<option additional="-load-config+=obj/XModLibExtConfig.xml" />
 		<option compilerConstants="" />
 		<option minorVersion="" />
 	</build>
@@ -56,7 +57,11 @@
 	</libraryPaths>
 	<!-- External Libraries -->
 	<externalLibraryPaths>
-		<!-- example: <element path="..." /> -->
+		<element path="swc/wg/base_app.swc" />
+		<element path="swc/wg/common.swc" />
+		<element path="swc/wg/battle.swc" />
+		<element path="swc/wg/gui_base.swc" />
+		<element path="swc/wg/gui_battle.swc" />
 	</externalLibraryPaths>
 	<!-- Runtime Shared Libraries -->
 	<rslPaths>
@@ -72,15 +77,16 @@
 	</library>
 	<!-- Class files to compile (other referenced classes will automatically be included) -->
 	<compileTargets>
+		<compile path="src/net/GPCracker/XModLib/LibraryMain.as" />
 	</compileTargets>
 	<!-- Paths to exclude from the Project Explorer tree -->
 	<hiddenPaths>
 		<hidden path="obj" />
 	</hiddenPaths>
 	<!-- Executed before build -->
-	<preBuildCommand />
+	<preBuildCommand alwaysRun="True">python XModLibPre.py</preBuildCommand>
 	<!-- Executed after build -->
-	<postBuildCommand alwaysRun="True">python XModLib.py</postBuildCommand>
+	<postBuildCommand alwaysRun="True">python XModLibPost.py</postBuildCommand>
 	<!-- Other project options -->
 	<options>
 		<option showHiddenPaths="False" />
