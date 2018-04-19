@@ -3,6 +3,7 @@
 # ------------ #
 #    Python    #
 # ------------ #
+import operator
 import itertools
 
 # -------------- #
@@ -15,43 +16,67 @@ import BigWorld
 #    WoT Client    #
 # ---------------- #
 import constants
+import vehicle_systems.tankStructure
 
 # ------------------- #
 #    X-Mod Library    #
 # ------------------- #
 from . import MathUtils
+from . import VehicleInfo
 from . import VehicleMath
 
 # -------------------- #
 #    Module Content    #
 # -------------------- #
-def collideStatic(startPoint, endPoint, collisionFlags=128, resultFilter=None):
+def collideStatic(startPoint, endPoint, excludeFlags=128, includeFlags=0):
 	'''
-	BigWorld.wg_collideSegment(spaceID, start, end, collFlags, lambda matKind, collFlags, itemId, chunkId: True) --> (point, normal, matKind, ???(pos), itemId, chunkId) or None
+	BigWorld.wg_collideSegment(spaceID, startPoint, endPoint, excludeFlags, includeFlags) -->
+		PyCollideSegment(closestPoint, normal, matKind, isTerrain()) or None
+	Collision flags:
+		1 - unknown
+		2 - unknown
+		4 - unknown
+		8 - terrain
+		16 - unknown
+		32 - unknown
+		64 - unknown
+		128 - weak destructible objects
 	'''
-	return BigWorld.wg_collideSegment(BigWorld.player().spaceID, startPoint, endPoint, collisionFlags, resultFilter)
+	return BigWorld.wg_collideSegment(BigWorld.player().spaceID, startPoint, endPoint, excludeFlags, includeFlags)
 
 def getVisibleVehicles(filterID=None, filterVehicle=None, skipPlayer=False):
 	vehicleIDs = iter(BigWorld.player().arena.vehicles)
-	vehicleIDs = itertools.ifilterfalse(lambda vehicleID: skipPlayer and vehicleID == BigWorld.player().playerVehicleID, vehicleIDs)
+	if skipPlayer:
+		excludeIDs = (BigWorld.player().observedVehicleID or BigWorld.player().playerVehicleID, )
+		vehicleIDs = itertools.ifilter(lambda vehicleID: vehicleID not in excludeIDs, vehicleIDs)
 	vehicleIDs = itertools.ifilter(filterID, vehicleIDs)
 	vehicles = itertools.imap(BigWorld.entity, vehicleIDs)
-	vehicles = itertools.ifilter(lambda vehicle: vehicle is not None and vehicle.isStarted, vehicles)
+	vehicles = itertools.ifilter(VehicleInfo.isStarted, vehicles)
 	return list(itertools.ifilter(filterVehicle, vehicles))
 
+def collideVehicle(vehicle, startPoint, endPoint, skipGun=False):
+	# This method returns collision data for the first armor layer only
+	# Therefore it should not be used for vehicle total armor calculations
+	if vehicle.appearance.collisions is not None:
+		gunPartIndex = vehicle_systems.tankStructure.TankPartIndexes.GUN
+		collisions = vehicle.appearance.collisions.collideAllWorld(startPoint, endPoint)
+		if collisions is not None:
+			for distance, hitAngleCos, materialKind, partIndex in collisions:
+				materialInfo = vehicle.getMatinfo(partIndex, materialKind)
+				if materialInfo and (not skipGun or partIndex != gunPartIndex):
+					return distance, hitAngleCos, materialInfo.armor
+	return None
+
 def collideVehicles(vehicles, startPoint, endPoint, skipGun=False):
-	'''
-	vehicle.collideSegment(startPoint, endPoint, skipGun) --> (distance, hitAngleCos, armor)
-	'''
-	collisionResults = list()
+	collisions = list()
 	for vehicle in vehicles:
-		collisionResult = vehicle.collideSegment(startPoint, endPoint, skipGun)
-		if collisionResult is not None:
-			distance, cos, armor = collisionResult
-			collisionResults.append((distance, vehicle, cos, armor))
-	if collisionResults:
-		distance, vehicle, cos, armor = min(collisionResults, key=lambda collisionResult: collisionResult[0])
-		return startPoint + MathUtils.getNormalisedVector(endPoint - startPoint).scale(distance), vehicle, cos, armor
+		collision = collideVehicle(vehicle, startPoint, endPoint, skipGun)
+		if collision is not None:
+			collisions.append((vehicle, ) + collision)
+	if collisions:
+		vehicle, distance, cos, armor = min(collisions, key=operator.itemgetter(1))
+		collpoint = startPoint + MathUtils.getNormalisedVector(endPoint - startPoint).scale(distance)
+		return collpoint, vehicle, cos, armor
 	return None
 
 def collideSpaceBB(startPoint, endPoint):

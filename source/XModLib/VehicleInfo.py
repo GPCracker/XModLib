@@ -34,6 +34,11 @@ def isVisible(entity):
 		entity = BigWorld.entity(entity)
 	return entity is not None
 
+def isStarted(vehicle):
+	if not isinstance(vehicle, (BigWorld.Entity, types.NoneType)):
+		vehicle = BigWorld.entity(vehicle)
+	return vehicle and vehicle.isStarted
+
 def isTarget(vehicle):
 	if not isinstance(vehicle, (BigWorld.Entity, types.NoneType)):
 		vehicle = BigWorld.entity(vehicle)
@@ -52,7 +57,7 @@ def isAlive(vehicle):
 def isPlayer(vehicle):
 	if not isinstance(vehicle, (BigWorld.Entity, types.NoneType)):
 		vehicle = BigWorld.entity(vehicle)
-	return vehicle and vehicle.isPlayer
+	return vehicle and vehicle.isPlayerVehicle
 
 def getSpeed(vehicle):
 	if not isinstance(vehicle, (BigWorld.Entity, types.NoneType)):
@@ -72,7 +77,4 @@ def getLevel(vehicle):
 def getClass(vehicle):
 	if not isinstance(vehicle, (BigWorld.Entity, types.NoneType)):
 		vehicle = BigWorld.entity(vehicle)
-	return vehicle and next(iter(vehicle.typeDescriptor.type.tags & items.vehicles.VEHICLE_CLASS_TAGS))
-
-def getPlayerVehicleID():
-	return BigWorld.player().playerVehicleID
+	return vehicle and items.vehicles.getVehicleClassFromVehicleType(vehicle.typeDescriptor.type)

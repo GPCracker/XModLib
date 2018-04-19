@@ -296,8 +296,7 @@ class AxisAlignedBoundingBox(_AxisAlignedBoundingBox):
 
 	@classmethod
 	def getSpaceBoundingBox(cls):
-		bounds = BigWorld.wg_getSpaceBounds().tuple()
-		return cls.construct((bounds[0:2], bounds[2:4]))
+		return cls.construct(BigWorld.player().arena.arenaType.spaceBoundingBox)
 
 	@classmethod
 	def getArenaBoundingBox(cls):
